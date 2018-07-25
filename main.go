@@ -14,6 +14,7 @@ import (
 
 	"github.com/chzyer/readline"
 	"github.com/gomodule/redigo/redis"
+	"github.com/mattn/go-shellwords"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -27,6 +28,7 @@ var (
 
 var (
 	rediscommands = Commands{}
+	conn          redis.Conn
 )
 
 func main() {
@@ -48,18 +50,30 @@ func main() {
 		cert = mycert
 	}
 
-	config := &tls.Config{RootCAs: x509.NewCertPool(),
-		ClientAuth: tls.RequireAndVerifyClientCert}
-	ok := config.RootCAs.AppendCertsFromPEM(cert)
-	if !ok {
-		log.Fatal("Couldn't load cert data")
-	}
+	if len(cert) > 0 {
 
-	c, err := redis.DialURL((*redisurl).String(), redis.DialTLSConfig(config))
-	if err != nil {
-		log.Fatal("Dial", err)
+		config := &tls.Config{RootCAs: x509.NewCertPool(),
+			ClientAuth: tls.RequireAndVerifyClientCert}
+
+		ok := config.RootCAs.AppendCertsFromPEM(cert)
+		if !ok {
+			log.Fatal("Couldn't load cert data")
+		}
+
+		var err error
+		conn, err = redis.DialURL((*redisurl).String(), redis.DialTLSConfig(config))
+		if err != nil {
+			log.Fatal("Dial", err)
+		}
+		defer conn.Close()
+	} else {
+		var err error
+		conn, err = redis.DialURL((*redisurl).String())
+		if err != nil {
+			log.Fatal("Dial", err)
+		}
+		defer conn.Close()
 	}
-	defer c.Close()
 
 	json.Unmarshal([]byte(redisCommandsJSON), &rediscommands)
 
@@ -77,11 +91,11 @@ func main() {
 
 	for _, v := range reflect.ValueOf(rediscommands).MapKeys() {
 		children := completer.GetChildren()
-		children = append(children, readline.PcItem(v.String()))
+		children = append(children, readline.PcItem(strings.ToLower(v.String())))
 		completer.SetChildren(children)
 	}
 
-	reply, err := redis.String(c.Do("INFO"))
+	reply, err := redis.String(conn.Do("INFO"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -110,7 +124,7 @@ func main() {
 			continue // Ignore no input
 		}
 
-		parts := strings.Split(line, " ")
+		parts, err := shellwords.Parse(line)
 
 		if len(parts) == 0 {
 			continue // Ignore no input
@@ -130,7 +144,7 @@ func main() {
 			args[i] = d
 		}
 
-		result, err := c.Do(parts[0], args...)
+		result, err := conn.Do(parts[0], args...)
 
 		switch v := result.(type) {
 		case redis.Error:
