@@ -147,9 +147,13 @@ func main() {
 				fmt.Println("Enter help <command> to show information about a command")
 				continue
 			}
-			commanddata, ok := rediscommands[parts[1]]
+			lookup := parts[1]
+			if len(parts) == 3 {
+				lookup = parts[1] + " " + parts[2]
+			}
+			commanddata, ok := rediscommands[lookup]
 			if ok {
-				fmt.Printf("Command: %s\n", strings.ToUpper(parts[1]))
+				fmt.Printf("Command: %s\n", strings.ToUpper(lookup))
 				fmt.Printf("Summary: %s\n", commanddata.Summary)
 				if commanddata.Complexity != "" {
 					fmt.Printf("Complexity: %s\n", commanddata.Complexity)
