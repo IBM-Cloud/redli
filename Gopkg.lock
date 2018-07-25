@@ -17,12 +17,6 @@
   revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
 
 [[projects]]
-  name = "github.com/chzyer/readline"
-  packages = ["."]
-  revision = "62c6fe6193755f722b8b8788aa7357be55a50ff1"
-  version = "v1.4"
-
-[[projects]]
   name = "github.com/gomodule/redigo"
   packages = [
     "internal",
@@ -32,10 +26,22 @@
   version = "v2.0.0"
 
 [[projects]]
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
+
+[[projects]]
   name = "github.com/mattn/go-shellwords"
   packages = ["."]
   revision = "02e3cf038dcea8290e44424da473dd12be796a8a"
   version = "v1.0.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/peterh/liner"
+  packages = ["."]
+  revision = "8c1271fcf47f341a9e6771872262870e1ad7650c"
 
 [[projects]]
   name = "gopkg.in/alecthomas/kingpin.v2"
@@ -46,6 +52,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4e74fbdcc4590830568416f40b488ba5b49798b546d158f754b66c8bf7f4c7ab"
+  inputs-digest = "3971857a2b36134a20876bd2abc03cf9698d1a459b6f8f95d9c787d8cab5a970"
   solver-name = "gps-cdcl"
   solver-version = 1

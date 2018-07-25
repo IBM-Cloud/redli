@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"reflect"
 	"sort"
 	"strings"
 
-	"github.com/chzyer/readline"
+	//	"github.com/chzyer/readline"
 	"github.com/gomodule/redigo/redis"
 	"github.com/mattn/go-shellwords"
+	"github.com/peterh/liner"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -27,8 +27,8 @@ var (
 )
 
 var (
-	rediscommands = Commands{}
-	conn          redis.Conn
+	rawrediscommands = Commands{}
+	conn             redis.Conn
 )
 
 func main() {
@@ -75,25 +75,20 @@ func main() {
 		defer conn.Close()
 	}
 
-	json.Unmarshal([]byte(redisCommandsJSON), &rediscommands)
+	json.Unmarshal([]byte(redisCommandsJSON), &rawrediscommands)
 
-	completer := readline.NewPrefixCompleter()
+	rediscommands := make(map[string]Command, len(rawrediscommands))
+	commandstrings := make([]string, len(rawrediscommands))
 
-	keys := reflect.ValueOf(rediscommands).MapKeys()
-	commands := make([]string, len(keys))
-	for i := 0; i < len(keys); i++ {
-		commands[i] = keys[i].String()
+	i := 0
+	for k, v := range rawrediscommands {
+		command := strings.ToLower(k)
+		commandstrings[i] = command
+		i = i + 1
+		rediscommands[command] = v
 	}
 
-	sort.Strings(commands)
-
-	//fmt.Println(commands)
-
-	for _, v := range reflect.ValueOf(rediscommands).MapKeys() {
-		children := completer.GetChildren()
-		children = append(children, readline.PcItem(strings.ToLower(v.String())))
-		completer.SetChildren(children)
-	}
+	sort.Strings(commandstrings)
 
 	reply, err := redis.String(conn.Do("INFO"))
 	if err != nil {
@@ -103,19 +98,34 @@ func main() {
 	info := redisParseInfo(reply)
 
 	fmt.Printf("Connected to %s\n", info["redis_version"])
-	rl, err := readline.NewEx(&readline.Config{
-		Prompt:       getPrompt(),
-		AutoComplete: completer,
+
+	liner := liner.NewLiner()
+	defer liner.Close()
+
+	liner.SetCtrlCAborts(true)
+
+	liner.SetCompleter(func(line string) (c []string) {
+		lowerline := strings.ToLower(line)
+		for _, n := range commandstrings {
+			if strings.HasPrefix(n, lowerline) {
+				c = append(c, n)
+			}
+		}
+		if len(c) == 0 {
+			if strings.HasPrefix(lowerline, "help ") {
+				helpphrase := strings.TrimPrefix(lowerline, "help ")
+				for _, n := range commandstrings {
+					if strings.HasPrefix(n, helpphrase) {
+						c = append(c, "help "+n)
+					}
+				}
+			}
+		}
+		return
 	})
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer rl.Close()
-
 	for {
-		line, err := rl.Readline()
+		line, err := liner.Prompt(getPrompt())
 		if err != nil {
 			break
 		}
@@ -130,9 +140,29 @@ func main() {
 			continue // Ignore no input
 		}
 
+		liner.AppendHistory(line)
+
 		if parts[0] == "help" {
-			fmt.Printf("Help coming soon\n")
-			continue
+			if len(parts) == 1 {
+				fmt.Println("Enter help <command> to show information about a command")
+				continue
+			}
+			commanddata, ok := rediscommands[parts[1]]
+			if ok {
+				fmt.Printf("Command: %s\n", strings.ToUpper(parts[1]))
+				fmt.Printf("Summary: %s\n", commanddata.Summary)
+				if commanddata.Complexity != "" {
+					fmt.Printf("Complexity: %s\n", commanddata.Complexity)
+				}
+				if commanddata.Arguments != nil {
+					fmt.Println("Args:")
+					for _, a := range commanddata.Arguments {
+						fmt.Printf("     %s (%s)\n", a.Name, a.Type)
+					}
+				}
+				continue
+			}
+
 		}
 
 		if parts[0] == "exit" {
