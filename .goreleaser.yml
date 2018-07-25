@@ -1,0 +1,10 @@
+build:
+  binary: redli
+  goos:
+    - windows
+    - darwin
+    - linux
+  goarch:
+    - amd64
+env_files:
+  github_token: ~/.config/goreleaser/github_token
