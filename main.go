@@ -1,9 +1,15 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -12,27 +18,68 @@ import (
 )
 
 var (
-	debug      = kingpin.Flag("debug", "Enable debug mode.").Bool()
-	longprompt = kingpin.Flag("long", "Enable long prompt with host/port").Bool()
-	redisurl   = kingpin.Arg("url", "URL to connect To.").Required().URL()
+	debug         = kingpin.Flag("debug", "Enable debug mode.").Bool()
+	longprompt    = kingpin.Flag("long", "Enable long prompt with host/port").Bool()
+	redisurl      = kingpin.Arg("url", "URL to connect To.").Required().URL()
+	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
+	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
+)
+
+var (
+	rediscommands = Commands{}
 )
 
 func main() {
 	kingpin.Parse()
-	c, err := redis.DialURL((*redisurl).String())
+
+	cert := []byte{}
+
+	if *rediscertfile != nil {
+		mycert, err := ioutil.ReadAll(*rediscertfile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cert = mycert
+	} else if rediscertb64 != nil {
+		mycert, err := base64.StdEncoding.DecodeString((*rediscertb64))
+		if err != nil {
+			log.Fatal("What", err)
+		}
+		cert = mycert
+	}
+
+	config := &tls.Config{RootCAs: x509.NewCertPool(),
+		ClientAuth: tls.RequireAndVerifyClientCert}
+	ok := config.RootCAs.AppendCertsFromPEM(cert)
+	if !ok {
+		log.Fatal("Couldn't load cert data")
+	}
+
+	c, err := redis.DialURL((*redisurl).String(), redis.DialTLSConfig(config))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Dial", err)
 	}
 	defer c.Close()
 
-	rediscommands := Commands{}
-
-	// redisCommandString, err := ioutil.ReadFile("./commands.json")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	json.Unmarshal([]byte(redisCommandsJSON), &rediscommands)
+
+	completer := readline.NewPrefixCompleter()
+
+	keys := reflect.ValueOf(rediscommands).MapKeys()
+	commands := make([]string, len(keys))
+	for i := 0; i < len(keys); i++ {
+		commands[i] = keys[i].String()
+	}
+
+	sort.Strings(commands)
+
+	//fmt.Println(commands)
+
+	for _, v := range reflect.ValueOf(rediscommands).MapKeys() {
+		children := completer.GetChildren()
+		children = append(children, readline.PcItem(v.String()))
+		completer.SetChildren(children)
+	}
 
 	reply, err := redis.String(c.Do("INFO"))
 	if err != nil {
@@ -42,11 +89,15 @@ func main() {
 	info := redisParseInfo(reply)
 
 	fmt.Printf("Connected to %s\n", info["redis_version"])
-	rl, err := readline.New(getPrompt())
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:       getPrompt(),
+		AutoComplete: completer,
+	})
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer rl.Close()
 
 	for {
@@ -55,7 +106,9 @@ func main() {
 			break
 		}
 
-		// ToDo: parse the line
+		if len(line) == 0 {
+			continue // Ignore no input
+		}
 
 		parts := strings.Split(line, " ")
 
@@ -89,9 +142,11 @@ func main() {
 		case []byte:
 			fmt.Printf("%s\n", string(v))
 		case nil:
-			fmt.Printf("TBD: no value\n")
+			fmt.Printf("nil\n")
 		case []interface{}:
-			fmt.Printf("TBD: array\n")
+			for i, j := range v {
+				fmt.Printf("%d) %s\n", i+1, j)
+			}
 		}
 	}
 }
@@ -118,13 +173,15 @@ func getPrompt() string {
 	return "> "
 }
 
-func PrintAsJSON(toprint interface{}) {
+func printAsJSON(toprint interface{}) {
 	jsonstr, _ := json.MarshalIndent(toprint, "", " ")
 	fmt.Println(string(jsonstr))
 }
 
+//Commands is a holder for Redis Command structures
 type Commands map[string]Command
 
+//Command is a holder for Redis Command data includint arguments
 type Command struct {
 	Summary    string     `json:"summary"`
 	Complexity string     `json:"complexity"`
@@ -133,6 +190,7 @@ type Command struct {
 	Group      string     `json:"group"`
 }
 
+//Argument is a holder for Redis Command Argument data
 type Argument struct {
 	Name     string `json:"name"`
 	Type     string `json:"type"`
