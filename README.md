@@ -6,18 +6,19 @@ Redli is a Go-based alternative to the official Redis-cli application. It's majo
 
 ## Usage
 
-```
+```text
 redli [<flags>] <url>
 ```
 
-### Flags:
-  * `--help` Show context-sensitive help (also try --help-long and --help-man).
-  * `--debug` Enable debug mode.
-  * `--long` Enable long prompt with host/port
-  * `--certfile=CERTFILE` Self-signed certificate file for validation
-  * `--certb64=CERTB64` Self-signed certificate string as base64 for validation
+### Flags
 
-#### Args:
+* `--help` Show context-sensitive help (also try --help-long and --help-man).
+* `--debug` Enable debug mode.
+* `--long` Enable long prompt with host/port
+* `--certfile=CERTFILE` Self-signed certificate file for validation
+* `--certb64=CERTB64` Self-signed certificate string as base64 for validation
+
+#### Args
 
 * `<url>`  URL to connect To. The URL is, at this point in development, mandatory. It follow the format of [the provisional IANA spec for Redis URLs](https://www.iana.org/assignments/uri-schemes/prov/redis), but with the option to denote a TLS secured connection with the protocol rediss:.
 
@@ -25,3 +26,6 @@ redli [<flags>] <url>
 
 Redli is released under the Apache 2 License.
 
+Attribution: The `commands.json` file is by the Salvatore Sanfillipo.
+
+In the process of building the application, the commands.json file of the Redis-docs repository is retrieved and incorporated into the code. This file is distributed under a CC-BY-SA 4.0 license (see [Copyright](https://github.com/antirez/redis-doc/blob/master/COPYRIGHT)).
