@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"sort"
+	"strconv"
 	"strings"
 
 	//	"github.com/chzyer/readline"
@@ -21,9 +23,15 @@ import (
 var (
 	debug         = kingpin.Flag("debug", "Enable debug mode.").Bool()
 	longprompt    = kingpin.Flag("long", "Enable long prompt with host/port").Bool()
-	redisurl      = kingpin.Arg("url", "URL to connect To.").Required().URL()
+	redisurl      = kingpin.Flag("uri", "URI to connect to").Short('u').URL()
+	redishost     = kingpin.Flag("host", "Host to connect to").Short('h').Default("127.0.0.1").String()
+	redisport     = kingpin.Flag("port", "Port to connect to").Short('p').Default("6379").Int()
+	redisauth     = kingpin.Flag("auth", "Password to use when connecting").Short('a').String()
+	redisdb       = kingpin.Flag("ndb", "Redis database to access").Short('n').Default("0").Int()
+	redistls      = kingpin.Flag("tls", "Enable TLS/SSL").Default("false").Bool()
 	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
 	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
+	commandargs   = kingpin.Arg("commands", "Redis commands and values").Strings()
 )
 
 var (
@@ -50,6 +58,26 @@ func main() {
 		cert = mycert
 	}
 
+	connectionurl := ""
+
+	if *redisurl == nil {
+		// With no URI, build a URI from other flags
+		if *redistls {
+			connectionurl = "rediss://"
+		} else {
+			connectionurl = "redis://"
+		}
+
+		if redisauth != nil {
+			connectionurl = connectionurl + "x:" + *redisauth + "@"
+		}
+
+		connectionurl = connectionurl + *redishost + ":" + strconv.Itoa(*redisport) + "/" + strconv.Itoa(*redisdb)
+	} else {
+		connectionurl = (*redisurl).String()
+	}
+
+	// If we have a certificate, then assume TLS
 	if len(cert) > 0 {
 
 		config := &tls.Config{RootCAs: x509.NewCertPool(),
@@ -61,18 +89,51 @@ func main() {
 		}
 
 		var err error
-		conn, err = redis.DialURL((*redisurl).String(), redis.DialTLSConfig(config))
+		conn, err = redis.DialURL(connectionurl, redis.DialTLSConfig(config))
 		if err != nil {
 			log.Fatal("Dial", err)
 		}
 		defer conn.Close()
 	} else {
 		var err error
-		conn, err = redis.DialURL((*redisurl).String())
+		conn, err = redis.DialURL(connectionurl)
 		if err != nil {
 			log.Fatal("Dial", err)
 		}
 		defer conn.Close()
+	}
+
+	// We may not need to carry on setting up the interactive front end so...
+	if *commandargs != nil {
+		command := *commandargs
+		var args = make([]interface{}, len(command[1:]))
+		for i, d := range command[1:] {
+			args[i] = d
+		}
+		result, err := conn.Do(command[0], args...)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		switch v := result.(type) {
+		case redis.Error:
+			fmt.Printf("%s\n", v.Error())
+		case int64:
+			fmt.Printf("%d\n", v)
+		case string:
+			fmt.Printf("%s\n", v)
+		case []byte:
+			fmt.Printf("%s\n", string(v))
+		case nil:
+			fmt.Printf("nil\n")
+		case []interface{}:
+			for i, j := range v {
+				fmt.Printf("%d) %s\n", i+1, j)
+			}
+		}
+
+		os.Exit(0)
 	}
 
 	json.Unmarshal([]byte(redisCommandsJSON), &rawrediscommands)
