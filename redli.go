@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 
-	//	"github.com/chzyer/readline"
 	"github.com/gomodule/redigo/redis"
 	"github.com/mattn/go-shellwords"
 	"github.com/peterh/liner"
