@@ -40,6 +40,8 @@ Be aware of interactions with wild cards and special characters in the shell; qu
 
 ## License
 
+Redli is (c) IBM Corporation 2017. All rights reserved.
+
 Redli is released under the Apache 2 License.
 
 Attribution: The `commands.json` file is by Salvatore Sanfillipo.
