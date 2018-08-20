@@ -91,14 +91,14 @@ func main() {
 		var err error
 		conn, err = redis.DialURL(connectionurl, redis.DialTLSConfig(config))
 		if err != nil {
-			log.Fatal("Dial", err)
+			log.Fatal("Dial TLS ", err)
 		}
 		defer conn.Close()
 	} else {
 		var err error
 		conn, err = redis.DialURL(connectionurl)
 		if err != nil {
-			log.Fatal("Dial", err)
+			log.Fatal("Dial ", err)
 		}
 		defer conn.Close()
 	}
