@@ -126,7 +126,13 @@ func main() {
 			log.Fatal(err)
 		}
 
-		printRedisResult(result)
+		forceraw := false
+
+		if strings.ToLower(command[0]) == "info" {
+			forceraw = true
+		}
+
+		printRedisResult(result, forceraw)
 
 		os.Exit(0)
 	}
@@ -181,6 +187,8 @@ func main() {
 	})
 
 	for {
+		forceraw := false
+
 		line, err := liner.Prompt(getPrompt())
 		if err != nil {
 			break
@@ -229,6 +237,10 @@ func main() {
 			break
 		}
 
+		if strings.ToLower(parts[0]) == "info" {
+			forceraw = true
+		}
+
 		var args = make([]interface{}, len(parts[1:]))
 		for i, d := range parts[1:] {
 			args[i] = d
@@ -236,43 +248,73 @@ func main() {
 
 		result, err := conn.Do(parts[0], args...)
 
-		printRedisResult(result)
+		printRedisResult(result, forceraw)
 	}
 }
 
-func printRedisResult(result interface{}) {
+func printRedisResult(result interface{}, forceraw bool) {
+	printRedisResultIndenting(result, "", forceraw)
+}
+
+func printRedisResultIndenting(result interface{}, prefix string, forceraw bool) {
 	switch v := result.(type) {
-	case redis.Error:
-		if raw {
-			fmt.Printf("%s\n", v.Error())
+	case []interface{}:
+		if raw || forceraw {
+			for _, j := range v {
+				switch vt := j.(type) {
+				case []interface{}:
+					printRedisResultIndenting(vt, "", forceraw)
+				default:
+					fmt.Printf("%s\n", toRedisValueString(vt, forceraw))
+				}
+			}
 		} else {
-			fmt.Printf("(error) %s\n", v.Error())
+			spacer := strings.Repeat(" ", len(prefix))
+			for i, j := range v {
+				switch vt := j.(type) {
+				case []interface{}:
+					newprefix := fmt.Sprintf("%s %d)", prefix, i+1)
+					printRedisResultIndenting(vt, newprefix, forceraw)
+				default:
+					if i == 0 {
+						fmt.Printf("%s %d) %s\n", prefix, i+1, toRedisValueString(j, forceraw))
+					} else {
+						fmt.Printf("%s %d) %s\n", spacer, i+1, toRedisValueString(j, forceraw))
+					}
+				}
+			}
+		}
+	default:
+		fmt.Printf("%s\n", toRedisValueString(result, forceraw))
+	}
+}
+
+func toRedisValueString(value interface{}, forceraw bool) string {
+	switch v := value.(type) {
+	case redis.Error:
+		if raw || forceraw {
+			return fmt.Sprintf("%s", v.Error())
+		} else {
+			return fmt.Sprintf("(error) %s", v.Error())
 		}
 	case int64:
-		if raw {
-			fmt.Printf("%d\n", v)
+		if raw || forceraw {
+			return fmt.Sprintf("%d", v)
 		} else {
-			fmt.Printf("(integer) %d\n", v)
+			return fmt.Sprintf("(integer) %d", v)
 		}
 	case string:
-		if raw {
-			fmt.Printf("%s\n", v)
-		} else {
-			fmt.Printf("%s\n", v)
-		}
+		return fmt.Sprintf("%s", v)
 	case []byte:
-		if raw {
-			fmt.Printf("%s\n", string(v))
+		if raw || forceraw {
+			return fmt.Sprintf("%s", string(v))
 		} else {
-			fmt.Printf("\"%s\"\n", string(v))
+			return fmt.Sprintf("\"%s\"", string(v))
 		}
 	case nil:
-		fmt.Printf("nil\n")
-	case []interface{}:
-		for i, j := range v {
-			fmt.Printf("%d) %s\n", i+1, j)
-		}
+		return "nil"
 	}
+	return ""
 }
 
 func redisParseInfo(reply string) map[string]string {

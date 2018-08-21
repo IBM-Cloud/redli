@@ -8,7 +8,7 @@ Redli is a Go-based alternative to the official Redis-cli application. It's majo
 
 ```text
  redli [<flags>] [<commands>...]
- 
+
       --help               Show context-sensitive help (also try --help-long and --help-man).
       --debug              Enable debug mode.
       --long               Enable long prompt with host/port
@@ -28,19 +28,13 @@ Args:
 
 * `URI`  URI to connect To. It follow the format of [the provisional IANA spec for Redis URLs](https://www.iana.org/assignments/uri-schemes/prov/redis), but with the option to denote a TLS secured connection with the protocol rediss:.
 
-### Args
-
-```text
-  [<commands>]  Redis commands and values
-```
-
-e.g. `INFO KEYSPACE` 
+e.g. `INFO KEYSPACE`
 
 Be aware of interactions with wild cards and special characters in the shell; quote and escape as appropriate.
 
 ## License
 
-Redli is (c) IBM Corporation 2017. All rights reserved.
+Redli is (c) IBM Corporation 2018. All rights reserved.
 
 Redli is released under the Apache 2 License.
 
