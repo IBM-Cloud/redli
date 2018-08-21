@@ -8,11 +8,7 @@ Redli is a Go-based alternative to the official Redis-cli application. It's majo
 
 ```text
  redli [<flags>] [<commands>...]
- ```
-
-### Flags
-
-```text
+ 
       --help               Show context-sensitive help (also try --help-long and --help-man).
       --debug              Enable debug mode.
       --long               Enable long prompt with host/port
@@ -24,6 +20,10 @@ Redli is a Go-based alternative to the official Redis-cli application. It's majo
       --tls                Enable TLS/SSL
       --certfile=CERTFILE  Self-signed certificate file for validation
       --certb64=CERTB64    Self-signed certificate string as base64 for validation
+      --raw                Produce raw output
+
+Args:
+  [<commands>]  Redis commands and values
 ```
 
 * `URI`  URI to connect To. It follow the format of [the provisional IANA spec for Redis URLs](https://www.iana.org/assignments/uri-schemes/prov/redis), but with the option to denote a TLS secured connection with the protocol rediss:.

@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/mattn/go-isatty"
 	"github.com/mattn/go-shellwords"
 	"github.com/peterh/liner"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -30,16 +31,26 @@ var (
 	redistls      = kingpin.Flag("tls", "Enable TLS/SSL").Default("false").Bool()
 	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
 	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
+	forceraw      = kingpin.Flag("raw", "Produce raw output").Bool()
 	commandargs   = kingpin.Arg("commands", "Redis commands and values").Strings()
 )
 
 var (
 	rawrediscommands = Commands{}
 	conn             redis.Conn
+	raw              = false
 )
 
 func main() {
 	kingpin.Parse()
+
+	if *forceraw {
+		raw = true
+	} else {
+		if !isatty.IsTerminal(os.Stdout.Fd()) && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+			raw = true
+		}
+	}
 
 	cert := []byte{}
 
@@ -115,22 +126,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		switch v := result.(type) {
-		case redis.Error:
-			fmt.Printf("%s\n", v.Error())
-		case int64:
-			fmt.Printf("%d\n", v)
-		case string:
-			fmt.Printf("%s\n", v)
-		case []byte:
-			fmt.Printf("%s\n", string(v))
-		case nil:
-			fmt.Printf("nil\n")
-		case []interface{}:
-			for i, j := range v {
-				fmt.Printf("%d) %s\n", i+1, j)
-			}
-		}
+		printRedisResult(result)
 
 		os.Exit(0)
 	}
@@ -240,21 +236,41 @@ func main() {
 
 		result, err := conn.Do(parts[0], args...)
 
-		switch v := result.(type) {
-		case redis.Error:
+		printRedisResult(result)
+	}
+}
+
+func printRedisResult(result interface{}) {
+	switch v := result.(type) {
+	case redis.Error:
+		if raw {
 			fmt.Printf("%s\n", v.Error())
-		case int64:
+		} else {
+			fmt.Printf("(error) %s\n", v.Error())
+		}
+	case int64:
+		if raw {
 			fmt.Printf("%d\n", v)
-		case string:
+		} else {
+			fmt.Printf("(integer) %d\n", v)
+		}
+	case string:
+		if raw {
 			fmt.Printf("%s\n", v)
-		case []byte:
+		} else {
+			fmt.Printf("%s\n", v)
+		}
+	case []byte:
+		if raw {
 			fmt.Printf("%s\n", string(v))
-		case nil:
-			fmt.Printf("nil\n")
-		case []interface{}:
-			for i, j := range v {
-				fmt.Printf("%d) %s\n", i+1, j)
-			}
+		} else {
+			fmt.Printf("\"%s\"\n", string(v))
+		}
+	case nil:
+		fmt.Printf("nil\n")
+	case []interface{}:
+		for i, j := range v {
+			fmt.Printf("%d) %s\n", i+1, j)
 		}
 	}
 }
