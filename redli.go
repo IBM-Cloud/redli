@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/mattn/go-isatty"
 	"github.com/mattn/go-shellwords"
 	"github.com/peterh/liner"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -30,16 +31,26 @@ var (
 	redistls      = kingpin.Flag("tls", "Enable TLS/SSL").Default("false").Bool()
 	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
 	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
+	forceraw      = kingpin.Flag("raw", "Produce raw output").Bool()
 	commandargs   = kingpin.Arg("commands", "Redis commands and values").Strings()
 )
 
 var (
 	rawrediscommands = Commands{}
 	conn             redis.Conn
+	raw              = false
 )
 
 func main() {
 	kingpin.Parse()
+
+	if *forceraw {
+		raw = true
+	} else {
+		if !isatty.IsTerminal(os.Stdout.Fd()) && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+			raw = true
+		}
+	}
 
 	cert := []byte{}
 
@@ -115,22 +126,13 @@ func main() {
 			log.Fatal(err)
 		}
 
-		switch v := result.(type) {
-		case redis.Error:
-			fmt.Printf("%s\n", v.Error())
-		case int64:
-			fmt.Printf("%d\n", v)
-		case string:
-			fmt.Printf("%s\n", v)
-		case []byte:
-			fmt.Printf("%s\n", string(v))
-		case nil:
-			fmt.Printf("nil\n")
-		case []interface{}:
-			for i, j := range v {
-				fmt.Printf("%d) %s\n", i+1, j)
-			}
+		forceraw := false
+
+		if strings.ToLower(command[0]) == "info" {
+			forceraw = true
 		}
+
+		printRedisResult(result, forceraw)
 
 		os.Exit(0)
 	}
@@ -185,6 +187,8 @@ func main() {
 	})
 
 	for {
+		forceraw := false
+
 		line, err := liner.Prompt(getPrompt())
 		if err != nil {
 			break
@@ -233,6 +237,10 @@ func main() {
 			break
 		}
 
+		if strings.ToLower(parts[0]) == "info" {
+			forceraw = true
+		}
+
 		var args = make([]interface{}, len(parts[1:]))
 		for i, d := range parts[1:] {
 			args[i] = d
@@ -240,23 +248,73 @@ func main() {
 
 		result, err := conn.Do(parts[0], args...)
 
-		switch v := result.(type) {
-		case redis.Error:
-			fmt.Printf("%s\n", v.Error())
-		case int64:
-			fmt.Printf("%d\n", v)
-		case string:
-			fmt.Printf("%s\n", v)
-		case []byte:
-			fmt.Printf("%s\n", string(v))
-		case nil:
-			fmt.Printf("nil\n")
-		case []interface{}:
+		printRedisResult(result, forceraw)
+	}
+}
+
+func printRedisResult(result interface{}, forceraw bool) {
+	printRedisResultIndenting(result, "", forceraw)
+}
+
+func printRedisResultIndenting(result interface{}, prefix string, forceraw bool) {
+	switch v := result.(type) {
+	case []interface{}:
+		if raw || forceraw {
+			for _, j := range v {
+				switch vt := j.(type) {
+				case []interface{}:
+					printRedisResultIndenting(vt, "", forceraw)
+				default:
+					fmt.Printf("%s\n", toRedisValueString(vt, forceraw))
+				}
+			}
+		} else {
+			spacer := strings.Repeat(" ", len(prefix))
 			for i, j := range v {
-				fmt.Printf("%d) %s\n", i+1, j)
+				switch vt := j.(type) {
+				case []interface{}:
+					newprefix := fmt.Sprintf("%s %d)", prefix, i+1)
+					printRedisResultIndenting(vt, newprefix, forceraw)
+				default:
+					if i == 0 {
+						fmt.Printf("%s %d) %s\n", prefix, i+1, toRedisValueString(j, forceraw))
+					} else {
+						fmt.Printf("%s %d) %s\n", spacer, i+1, toRedisValueString(j, forceraw))
+					}
+				}
 			}
 		}
+	default:
+		fmt.Printf("%s\n", toRedisValueString(result, forceraw))
 	}
+}
+
+func toRedisValueString(value interface{}, forceraw bool) string {
+	switch v := value.(type) {
+	case redis.Error:
+		if raw || forceraw {
+			return fmt.Sprintf("%s", v.Error())
+		} else {
+			return fmt.Sprintf("(error) %s", v.Error())
+		}
+	case int64:
+		if raw || forceraw {
+			return fmt.Sprintf("%d", v)
+		} else {
+			return fmt.Sprintf("(integer) %d", v)
+		}
+	case string:
+		return fmt.Sprintf("%s", v)
+	case []byte:
+		if raw || forceraw {
+			return fmt.Sprintf("%s", string(v))
+		} else {
+			return fmt.Sprintf("\"%s\"", string(v))
+		}
+	case nil:
+		return "nil"
+	}
+	return ""
 }
 
 func redisParseInfo(reply string) map[string]string {
