@@ -275,7 +275,10 @@ func redisParseInfo(reply string) map[string]string {
 
 func getPrompt() string {
 	if *longprompt {
-		return fmt.Sprintf("%s:%s> ", (*redisurl).Hostname(), (*redisurl).Port())
+		if *redisurl != nil {
+			return fmt.Sprintf("%s:%s> ", (*redisurl).Hostname(), (*redisurl).Port())
+		}
+		return fmt.Sprintf("%s:%d> ", *redishost, *redisport)
 	}
 
 	return "> "
