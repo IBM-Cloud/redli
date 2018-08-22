@@ -294,23 +294,20 @@ func toRedisValueString(value interface{}, forceraw bool) string {
 	case redis.Error:
 		if raw || forceraw {
 			return fmt.Sprintf("%s", v.Error())
-		} else {
-			return fmt.Sprintf("(error) %s", v.Error())
 		}
+		return fmt.Sprintf("(error) %s", v.Error())
 	case int64:
 		if raw || forceraw {
 			return fmt.Sprintf("%d", v)
-		} else {
-			return fmt.Sprintf("(integer) %d", v)
 		}
+		return fmt.Sprintf("(integer) %d", v)
 	case string:
 		return fmt.Sprintf("%s", v)
 	case []byte:
 		if raw || forceraw {
 			return fmt.Sprintf("%s", string(v))
-		} else {
-			return fmt.Sprintf("\"%s\"", string(v))
 		}
+		return fmt.Sprintf("\"%s\"", string(v))
 	case nil:
 		return "nil"
 	}
