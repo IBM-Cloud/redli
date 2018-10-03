@@ -32,6 +32,7 @@ var (
 	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
 	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
 	forceraw      = kingpin.Flag("raw", "Produce raw output").Bool()
+	eval          = kingpin.Flag("eval", "Evaluate a script").File()
 	commandargs   = kingpin.Arg("commands", "Redis commands and values").Strings()
 )
 
@@ -114,6 +115,49 @@ func main() {
 	}
 
 	// We may not need to carry on setting up the interactive front end so...
+	if *eval != nil {
+		command := *commandargs
+
+		scriptsrc, err := ioutil.ReadAll(*eval)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var args = make([]interface{}, len(command[1:]))
+
+		keycnt := 0
+		gotcomma := false
+
+		for i, d := range command {
+			if !gotcomma {
+				if d == "," {
+					gotcomma = true
+				} else {
+					args[i] = d
+					keycnt = keycnt + 1
+				}
+			} else {
+				args[i-1] = d
+			}
+		}
+
+		var iargs []interface{}
+		iargs = append(iargs, keycnt)
+		iargs = append(iargs, args...)
+
+		script := redis.NewScript(-1, string(scriptsrc[:]))
+		result, err := script.Do(conn, iargs)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		printRedisResult(result, false)
+
+		os.Exit(0)
+	}
+
 	if *commandargs != nil {
 		command := *commandargs
 		var args = make([]interface{}, len(command[1:]))
