@@ -18,6 +18,7 @@ Redli is a Go-based alternative to the official Redis-cli application. It's majo
   -a, --auth=AUTH          Password to use when connecting
   -n, --ndb=0              Redis database to access
       --tls                Enable TLS/SSL
+      --skipverify         Insecure option to skip server certificate validation
       --certfile=CERTFILE  Self-signed certificate file for validation
       --certb64=CERTB64    Self-signed certificate string as base64 for validation
       --raw                Produce raw output
