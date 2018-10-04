@@ -153,8 +153,8 @@ func main() {
 		keycnt := 0
 
 		// If there are other arguments, process them
-		if len(command) > 1 {
-			var args = make([]interface{}, len(command[1:]))
+		if len(command) > 0 {
+			var args = make([]interface{}, len(command[:]))
 
 			gotcomma := false
 
