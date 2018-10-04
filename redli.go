@@ -49,7 +49,7 @@ var (
 	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
 	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
 	forceraw      = kingpin.Flag("raw", "Produce raw output").Bool()
-	eval          = kingpin.Flag("eval", "Evaluate a script").File()
+	eval          = kingpin.Flag("eval", "Evaluate a Lua script file, follow with keys a , and args").File()
 	commandargs   = kingpin.Arg("commands", "Redis commands and values").Strings()
 )
 

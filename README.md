@@ -22,7 +22,8 @@ Redli is a Go-based alternative to the official Redis-cli application. It's majo
       --certfile=CERTFILE  Self-signed certificate file for validation
       --certb64=CERTB64    Self-signed certificate string as base64 for validation
       --raw                Produce raw output
-
+      --eval=EVAL          Evaluate a Lua script file, follow with keys a , and args
+      
 Args:
   [<commands>]  Redis commands and values
 ```
