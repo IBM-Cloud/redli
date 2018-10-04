@@ -174,10 +174,6 @@ func main() {
 			iargs = append(iargs, args...)
 		}
 
-		fmt.Printf("%d\n", keycnt)
-
-		fmt.Printf("%#v\n", iargs)
-
 		script := redis.NewScript(keycnt, string(scriptsrc[:]))
 		result, err := script.Do(conn, iargs...)
 
