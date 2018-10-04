@@ -45,6 +45,7 @@ var (
 	redisauth     = kingpin.Flag("auth", "Password to use when connecting").Short('a').String()
 	redisdb       = kingpin.Flag("ndb", "Redis database to access").Short('n').Default("0").Int()
 	redistls      = kingpin.Flag("tls", "Enable TLS/SSL").Default("false").Bool()
+	skipverify    = kingpin.Flag("skipverify", "Don't validate certificates").Default("false").Bool()
 	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
 	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
 	forceraw      = kingpin.Flag("raw", "Produce raw output").Bool()
@@ -108,7 +109,8 @@ func main() {
 	if len(cert) > 0 {
 
 		config := &tls.Config{RootCAs: x509.NewCertPool(),
-			ClientAuth: tls.RequireAndVerifyClientCert}
+			ClientAuth:         tls.RequireAndVerifyClientCert,
+			InsecureSkipVerify: *skipverify}
 
 		ok := config.RootCAs.AppendCertsFromPEM(cert)
 		if !ok {
@@ -123,7 +125,13 @@ func main() {
 		defer conn.Close()
 	} else {
 		var err error
-		conn, err = redis.DialURL(connectionurl)
+		if *skipverify {
+			config := &tls.Config{InsecureSkipVerify: *skipverify}
+			conn, err = redis.DialURL(connectionurl, redis.DialTLSConfig(config))
+		} else {
+			conn, err = redis.DialURL(connectionurl)
+		}
+
 		if err != nil {
 			log.Fatal("Dial ", err)
 		}
