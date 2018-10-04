@@ -148,30 +148,38 @@ func main() {
 			log.Fatal(err)
 		}
 
-		var args = make([]interface{}, len(command[1:]))
+		var iargs []interface{}
 
 		keycnt := 0
-		gotcomma := false
 
-		for i, d := range command {
-			if !gotcomma {
-				if d == "," {
-					gotcomma = true
+		// If there are other arguments, process them
+		if len(command) > 1 {
+			var args = make([]interface{}, len(command[1:]))
+
+			gotcomma := false
+
+			for i, d := range command {
+				if !gotcomma {
+					if d == "," {
+						gotcomma = true
+					} else {
+						args[i] = d
+						keycnt = keycnt + 1
+					}
 				} else {
-					args[i] = d
-					keycnt = keycnt + 1
+					args[i-1] = d
 				}
-			} else {
-				args[i-1] = d
 			}
+
+			iargs = append(iargs, args...)
 		}
 
-		var iargs []interface{}
-		iargs = append(iargs, keycnt)
-		iargs = append(iargs, args...)
+		fmt.Printf("%d\n", keycnt)
 
-		script := redis.NewScript(-1, string(scriptsrc[:]))
-		result, err := script.Do(conn, iargs)
+		fmt.Printf("%#v\n", iargs)
+
+		script := redis.NewScript(keycnt, string(scriptsrc[:]))
+		result, err := script.Do(conn, iargs...)
 
 		if err != nil {
 			log.Fatal(err)
