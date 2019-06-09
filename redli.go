@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"sort"
 	"strconv"
@@ -97,7 +98,7 @@ func main() {
 		}
 
 		if redisauth != nil {
-			connectionurl = connectionurl + "x:" + *redisauth + "@"
+			connectionurl = connectionurl + "x:" + url.QueryEscape(*redisauth) + "@"
 		}
 
 		connectionurl = connectionurl + *redishost + ":" + strconv.Itoa(*redisport) + "/" + strconv.Itoa(*redisdb)
