@@ -2,3 +2,4 @@ redli
 dist/
 commands.go.old
 .DS_Store
+.vscode/
