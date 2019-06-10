@@ -1,5 +1,7 @@
 # Redli - a humane alternative to redis-cli
 
+[![Release](https://img.shields.io/github/release/IBM-Cloud/redli.svg)](https://github.com/IBM-Cloud/redli/releases/latest)
+
 ## About
 
 Redli is a Go-based alternative to the official Redis-cli application. It's major feature is that it mimics the redis-cli command line argurments while also understanding rediss: protocols and supporting a `--tls` flag allowing it to connect to TLS/SSL secured Redis without the need for tunnels. It also has a number of flags and environment variables for passing server certificates over as files or base64 strings. Note, passing a certificate turns TLS on by default.
