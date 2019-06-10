@@ -1,10 +1,23 @@
-build:
-  binary: redli
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod download
+builds:
+- binary: redli
   goos:
     - windows
     - darwin
     - linux
   goarch:
     - amd64
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+    - Merge pull request
+    - Merge branch
 env_files:
   github_token: ~/.config/goreleaser/github_token
