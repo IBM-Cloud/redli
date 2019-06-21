@@ -6,6 +6,15 @@
 
 Redli is a Go-based alternative to the official Redis-cli application. It's major feature is that it mimics the redis-cli command line argurments while also understanding rediss: protocols and supporting a `--tls` flag allowing it to connect to TLS/SSL secured Redis without the need for tunnels. It also has a number of flags and environment variables for passing server certificates over as files or base64 strings. Note, passing a certificate turns TLS on by default.
 
+## Installation
+
+You can download the binary for your OS from the [releases page](https://github.com/IBM-Cloud/redli/releases). Un-tar the file, then `chmod +x` the binary and move it to your path.
+
+You can also compile Redli with **go** using these steps (Go 1.8+ required):
+
+1. `go get -u github.com/IBM-Cloud/redli`
+2. `go install github.com/IBM-Cloud/redli`
+
 ## Usage
 
 ```text
