@@ -30,6 +30,8 @@ You can also compile Redli with **go** using these steps (Go 1.8+ required):
   -n, --ndb=0              Redis database to access
       --tls                Enable TLS/SSL
       --skipverify         Insecure option to skip server certificate validation
+      --clientfile=CLIENTFILE  Self-signed client certificate for mTLS authentication
+      --clientkey=CLIENTKEY    Self-signed client key for mTLS authentication
       --certfile=CERTFILE  Self-signed certificate file for validation
       --certb64=CERTB64    Self-signed certificate string as base64 for validation
       --raw                Produce raw output
