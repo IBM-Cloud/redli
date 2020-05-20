@@ -190,6 +190,9 @@ func main() {
 
 	if *commandargs != nil {
 		command := *commandargs
+
+		catchMonitorCmd(command[0])
+
 		var args = make([]interface{}, len(command[1:]))
 		for i, d := range command[1:] {
 			args[i] = d
@@ -320,9 +323,21 @@ func main() {
 			args[i] = d
 		}
 
+		catchMonitorCmd(parts[0])
+
 		result, err := conn.Do(parts[0], args...)
 
 		printRedisResult(result, forceraw)
+	}
+}
+
+func catchMonitorCmd(command string) {
+	if strings.ToLower(command) == "monitor" {
+		conn.Do("monitor")
+		for {
+			line, _ := redis.String(conn.Receive())
+			fmt.Printf("%s\n", line)
+		}
 	}
 }
 
