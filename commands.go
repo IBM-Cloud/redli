@@ -2,6 +2,101 @@ package main
 
 var redisCommandsJSON = `
 {
+  "ACL LOAD": {
+    "summary": "Reload the ACLs from the configured ACL file",
+    "complexity": "O(N). Where N is the number of configured users.",
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL SAVE": {
+    "summary": "Save the current ACL rules in the configured ACL file",
+    "complexity": "O(N). Where N is the number of configured users.",
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL LIST": {
+    "summary": "List the current ACL rules in ACL config file format",
+    "complexity": "O(N). Where N is the number of configured users.",
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL USERS": {
+    "summary": "List the username of all the configured ACL rules",
+    "complexity": "O(N). Where N is the number of configured users.",
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL SETUSER": {
+    "summary": "Modify or create the rules for a specific ACL user",
+    "complexity": "O(N). Where N is the number of rules provided.",
+    "arguments": [
+      {
+        "name": "rule",
+        "type": "string",
+        "multiple": true
+      }
+    ],
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL DELUSER": {
+    "summary": "Remove the specified ACL users and the associated rules",
+    "complexity": "O(1) amortized time considering the typical user.",
+    "arguments": [
+      {
+        "name": "username",
+        "type": "string",
+        "multiple": true
+      }
+    ],
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL CAT": {
+    "summary": "List the ACL categories or the commands inside a category",
+    "complexity": "O(1) since the categories and commands are a fixed set.",
+    "arguments": [
+      {
+        "name": "categoryname",
+        "type": "string",
+        "optional": true
+      }
+    ],
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL GENPASS": {
+    "summary": "Generate a pseudorandom secure password to use for ACL users",
+    "complexity": "O(1)",
+    "arguments": [
+      {
+        "name": "bits",
+        "type": "integer",
+        "optional": true
+      }
+    ],
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL WHOAMI": {
+    "summary": "Return the name of the user associated to the current connection",
+    "complexity": "O(1)",
+    "since": "6.0.0",
+    "group": "server"
+  },
+  "ACL LOG": {
+    "summary": "List latest events denied because of ACLs in place",
+    "complexity": "O(N) with N being the number of entries shown.",
+    "arguments": [
+      {
+        "name": "count or RESET",
+        "type": "string",
+        "optional": true
+      }
+    ],
+    "since": "6.0.0",
+    "group": "server"
+  },
   "APPEND": {
     "summary": "Append a value to a key",
     "complexity": "O(1). The amortized time complexity is O(1) assuming the appended value is small and the already present value is of any size, since the dynamic string library used by Redis will double the free space available on every reallocation.",
@@ -36,6 +131,16 @@ var redisCommandsJSON = `
   },
   "BGSAVE": {
     "summary": "Asynchronously save the dataset to disk",
+    "arguments": [
+      {
+        "name": "schedule",
+        "type": "enum",
+        "enum": [
+          "SCHEDULE"
+        ],
+        "optional": true
+      }
+    ],
     "since": "1.0.0",
     "group": "server"
   },
@@ -48,8 +153,14 @@ var redisCommandsJSON = `
         "type": "key"
       },
       {
-        "name": ["start", "end"],
-        "type": ["integer", "integer"],
+        "name": [
+          "start",
+          "end"
+        ],
+        "type": [
+          "integer",
+          "integer"
+        ],
         "optional": true
       }
     ],
@@ -66,26 +177,52 @@ var redisCommandsJSON = `
       },
       {
         "command": "GET",
-        "name": ["type", "offset"],
-        "type": ["type", "integer"],
+        "name": [
+          "type",
+          "offset"
+        ],
+        "type": [
+          "type",
+          "integer"
+        ],
         "optional": true
       },
       {
         "command": "SET",
-        "name": ["type", "offset", "value"],
-        "type": ["type", "integer", "integer"],
+        "name": [
+          "type",
+          "offset",
+          "value"
+        ],
+        "type": [
+          "type",
+          "integer",
+          "integer"
+        ],
         "optional": true
       },
       {
         "command": "INCRBY",
-        "name": ["type", "offset", "increment"],
-        "type": ["type", "integer", "integer"],
+        "name": [
+          "type",
+          "offset",
+          "increment"
+        ],
+        "type": [
+          "type",
+          "integer",
+          "integer"
+        ],
         "optional": true
       },
       {
         "command": "OVERFLOW",
         "type": "enum",
-        "enum": ["WRAP", "SAT", "FAIL"],
+        "enum": [
+          "WRAP",
+          "SAT",
+          "FAIL"
+        ],
         "optional": true
       }
     ],
@@ -174,7 +311,7 @@ var redisCommandsJSON = `
     "group": "list"
   },
   "BRPOPLPUSH": {
-    "summary": "Pop a value from a list, push it to another list and return it; or block until one is available",
+    "summary": "Pop an element from a list, push it to another list and return it; or block until one is available",
     "complexity": "O(1)",
     "arguments": [
       {
@@ -227,6 +364,28 @@ var redisCommandsJSON = `
     "since": "5.0.0",
     "group": "sorted_set"
   },
+  "CLIENT CACHING": {
+    "summary": "Instruct the server about tracking or not keys in the next request",
+    "complexity": "O(1)",
+    "arguments": [
+      {
+        "name": "mode",
+        "type": "enum",
+        "enum": [
+          "YES",
+          "NO"
+        ]
+      }
+    ],
+    "since": "6.0.0",
+    "group": "connection"
+  },
+  "CLIENT ID": {
+    "summary": "Returns the client ID for the current connection",
+    "complexity": "O(1)",
+    "since": "5.0.0",
+    "group": "connection"
+  },
   "CLIENT KILL": {
     "summary": "Kill the connection of a client",
     "complexity": "O(N) where N is the number of client connections",
@@ -245,7 +404,12 @@ var redisCommandsJSON = `
       {
         "command": "TYPE",
         "type": "enum",
-        "enum": ["normal", "master", "slave", "pubsub"],
+        "enum": [
+          "normal",
+          "master",
+          "slave",
+          "pubsub"
+        ],
         "optional": true
       },
       {
@@ -262,19 +426,38 @@ var redisCommandsJSON = `
       }
     ],
     "since": "2.4.0",
-    "group": "server"
+    "group": "connection"
   },
   "CLIENT LIST": {
     "summary": "Get the list of client connections",
     "complexity": "O(N) where N is the number of client connections",
+    "arguments": [
+      {
+        "command": "TYPE",
+        "type": "enum",
+        "enum": [
+          "normal",
+          "master",
+          "replica",
+          "pubsub"
+        ],
+        "optional": true
+      }
+    ],
     "since": "2.4.0",
-    "group": "server"
+    "group": "connection"
   },
   "CLIENT GETNAME": {
     "summary": "Get the current connection name",
     "complexity": "O(1)",
     "since": "2.6.9",
-    "group": "server"
+    "group": "connection"
+  },
+  "CLIENT GETREDIR": {
+    "summary": "Get tracking notifications redirection client ID if any",
+    "complexity": "O(1)",
+    "since": "6.0.0",
+    "group": "connection"
   },
   "CLIENT PAUSE": {
     "summary": "Stop processing commands from clients for some time",
@@ -286,7 +469,7 @@ var redisCommandsJSON = `
       }
     ],
     "since": "2.9.50",
-    "group": "server"
+    "group": "connection"
   },
   "CLIENT REPLY": {
     "summary": "Instruct the server whether to reply to commands",
@@ -295,11 +478,15 @@ var redisCommandsJSON = `
       {
         "name": "reply-mode",
         "type": "enum",
-        "enum": ["ON", "OFF", "SKIP"]
+        "enum": [
+          "ON",
+          "OFF",
+          "SKIP"
+        ]
       }
     ],
     "since": "3.2",
-    "group": "server"
+    "group": "connection"
   },
   "CLIENT SETNAME": {
     "summary": "Set the current connection name",
@@ -311,7 +498,88 @@ var redisCommandsJSON = `
         "type": "string"
       }
     ],
-    "group": "server"
+    "group": "connection"
+  },
+  "CLIENT TRACKING": {
+    "summary": "Enable or disable server assisted client side caching support",
+    "complexity": "O(1)",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "enum",
+        "enum": [
+          "ON",
+          "OFF"
+        ]
+      },
+      {
+        "command": "REDIRECT",
+        "name": "client-id",
+        "type": "integer",
+        "optional": true
+      },
+      {
+        "command": "PREFIX",
+        "name": "prefix",
+        "type": "srting",
+        "optional": true
+      },
+      {
+        "name": "BCAST",
+        "type": "enum",
+        "enum": [
+          "BCAST"
+        ],
+        "optional": true
+      },
+      {
+        "name": "OPTIN",
+        "type": "enum",
+        "enum": [
+          "OPTIN"
+        ],
+        "optional": true
+      },
+      {
+        "name": "OPTOUT",
+        "type": "enum",
+        "enum": [
+          "OPTOUT"
+        ],
+        "optional": true
+      },
+      {
+        "name": "NOLOOP",
+        "type": "enum",
+        "enum": [
+          "NOLOOP"
+        ],
+        "optional": true
+      }
+    ],
+    "since": "6.0.0",
+    "group": "connection"
+  },
+  "CLIENT UNBLOCK": {
+    "summary": "Unblock a client blocked in a blocking command from a different connection",
+    "complexity": "O(log N) where N is the number of client connections",
+    "arguments": [
+      {
+        "name": "client-id",
+        "type": "integer"
+      },
+      {
+        "name": "unblock-type",
+        "type": "enum",
+        "enum": [
+          "TIMEOUT",
+          "ERROR"
+        ],
+        "optional": true
+      }
+    ],
+    "since": "5.0.0",
+    "group": "connection"
   },
   "CLUSTER ADDSLOTS": {
     "summary": "Assign new hash slots to receiving node",
@@ -323,6 +591,12 @@ var redisCommandsJSON = `
         "multiple": true
       }
     ],
+    "since": "3.0.0",
+    "group": "cluster"
+  },
+  "CLUSTER BUMPEPOCH": {
+    "summary": "Advance the cluster config epoch",
+    "complexity": "O(1)",
     "since": "3.0.0",
     "group": "cluster"
   },
@@ -364,16 +638,25 @@ var redisCommandsJSON = `
     "group": "cluster"
   },
   "CLUSTER FAILOVER": {
-    "summary": "Forces a slave to perform a manual failover of its master.",
+    "summary": "Forces a replica to perform a manual failover of its master.",
     "complexity": "O(1)",
     "arguments": [
       {
         "name": "options",
         "type": "enum",
-        "enum": ["FORCE","TAKEOVER"],
+        "enum": [
+          "FORCE",
+          "TAKEOVER"
+        ],
         "optional": true
       }
     ],
+    "since": "3.0.0",
+    "group": "cluster"
+  },
+  "CLUSTER FLUSHSLOTS": {
+    "summary": "Delete a node's own slots information",
+    "complexity": "O(1)",
     "since": "3.0.0",
     "group": "cluster"
   },
@@ -439,6 +722,12 @@ var redisCommandsJSON = `
     "since": "3.0.0",
     "group": "cluster"
   },
+  "CLUSTER MYID": {
+    "summary": "Return the node id",
+    "complexity": "O(1)",
+    "since": "3.0.0",
+    "group": "cluster"
+  },
   "CLUSTER NODES": {
     "summary": "Get Cluster config for the node",
     "complexity": "O(N) where N is the total number of Cluster nodes",
@@ -446,7 +735,7 @@ var redisCommandsJSON = `
     "group": "cluster"
   },
   "CLUSTER REPLICATE": {
-    "summary": "Reconfigure a node as a slave of the specified master node",
+    "summary": "Reconfigure a node as a replica of the specified master node",
     "complexity": "O(1)",
     "arguments": [
       {
@@ -464,7 +753,10 @@ var redisCommandsJSON = `
       {
         "name": "reset-type",
         "type": "enum",
-        "enum": ["HARD", "SOFT"],
+        "enum": [
+          "HARD",
+          "SOFT"
+        ],
         "optional": true
       }
     ],
@@ -500,7 +792,12 @@ var redisCommandsJSON = `
       {
         "name": "subcommand",
         "type": "enum",
-        "enum": ["IMPORTING", "MIGRATING", "STABLE", "NODE"]
+        "enum": [
+          "IMPORTING",
+          "MIGRATING",
+          "STABLE",
+          "NODE"
+        ]
       },
       {
         "name": "node-id",
@@ -512,7 +809,7 @@ var redisCommandsJSON = `
     "group": "cluster"
   },
   "CLUSTER SLAVES": {
-    "summary": "List slave nodes of the specified master node",
+    "summary": "List replica nodes of the specified master node",
     "complexity": "O(1)",
     "arguments": [
       {
@@ -521,6 +818,18 @@ var redisCommandsJSON = `
       }
     ],
     "since": "3.0.0",
+    "group": "cluster"
+  },
+  "CLUSTER REPLICAS": {
+    "summary": "List replica nodes of the specified master node",
+    "complexity": "O(1)",
+    "arguments": [
+      {
+        "name": "node-id",
+        "type": "string"
+      }
+    ],
+    "since": "5.0.0",
     "group": "cluster"
   },
   "CLUSTER SLOTS": {
@@ -795,7 +1104,9 @@ var redisCommandsJSON = `
       {
         "name": "async",
         "type": "enum",
-        "enum": ["ASYNC"],
+        "enum": [
+          "ASYNC"
+        ],
         "optional": true
       }
     ],
@@ -808,7 +1119,9 @@ var redisCommandsJSON = `
       {
         "name": "async",
         "type": "enum",
-        "enum": ["ASYNC"],
+        "enum": [
+          "ASYNC"
+        ],
         "optional": true
       }
     ],
@@ -824,8 +1137,16 @@ var redisCommandsJSON = `
         "type": "key"
       },
       {
-        "name": ["longitude", "latitude", "member"],
-        "type": ["double", "double", "string"],
+        "name": [
+          "longitude",
+          "latitude",
+          "member"
+        ],
+        "type": [
+          "double",
+          "double",
+          "string"
+        ],
         "multiple": true
       }
     ],
@@ -884,7 +1205,13 @@ var redisCommandsJSON = `
       },
       {
         "name": "unit",
-        "type": "string",
+        "type": "enum",
+        "enum": [
+          "m",
+          "km",
+          "ft",
+          "mi"
+        ],
         "optional": true
       }
     ],
@@ -914,24 +1241,35 @@ var redisCommandsJSON = `
       {
         "name": "unit",
         "type": "enum",
-        "enum": ["m", "km", "ft", "mi"]
+        "enum": [
+          "m",
+          "km",
+          "ft",
+          "mi"
+        ]
       },
       {
         "name": "withcoord",
         "type": "enum",
-        "enum": ["WITHCOORD"],
+        "enum": [
+          "WITHCOORD"
+        ],
         "optional": true
       },
       {
         "name": "withdist",
         "type": "enum",
-        "enum": ["WITHDIST"],
+        "enum": [
+          "WITHDIST"
+        ],
         "optional": true
       },
       {
         "name": "withhash",
         "type": "enum",
-        "enum": ["WITHHASH"],
+        "enum": [
+          "WITHHASH"
+        ],
         "optional": true
       },
       {
@@ -943,7 +1281,10 @@ var redisCommandsJSON = `
       {
         "name": "order",
         "type": "enum",
-        "enum": ["ASC", "DESC"],
+        "enum": [
+          "ASC",
+          "DESC"
+        ],
         "optional": true
       },
       {
@@ -981,24 +1322,35 @@ var redisCommandsJSON = `
       {
         "name": "unit",
         "type": "enum",
-        "enum": ["m", "km", "ft", "mi"]
+        "enum": [
+          "m",
+          "km",
+          "ft",
+          "mi"
+        ]
       },
       {
         "name": "withcoord",
         "type": "enum",
-        "enum": ["WITHCOORD"],
+        "enum": [
+          "WITHCOORD"
+        ],
         "optional": true
       },
       {
         "name": "withdist",
         "type": "enum",
-        "enum": ["WITHDIST"],
+        "enum": [
+          "WITHDIST"
+        ],
         "optional": true
       },
       {
         "name": "withhash",
         "type": "enum",
-        "enum": ["WITHHASH"],
+        "enum": [
+          "WITHHASH"
+        ],
         "optional": true
       },
       {
@@ -1010,7 +1362,10 @@ var redisCommandsJSON = `
       {
         "name": "order",
         "type": "enum",
-        "enum": ["ASC", "DESC"],
+        "enum": [
+          "ASC",
+          "DESC"
+        ],
         "optional": true
       },
       {
@@ -1109,6 +1464,36 @@ var redisCommandsJSON = `
     ],
     "since": "2.0.0",
     "group": "hash"
+  },
+  "HELLO": {
+    "summary": "switch Redis protocol",
+    "complexity": "O(1)",
+    "arguments": [
+      {
+        "name": "protover",
+        "type": "integer"
+      },
+      {
+        "command": "AUTH",
+        "name": [
+          "username",
+          "password"
+        ],
+        "type": [
+          "string",
+          "string"
+        ],
+        "optional": true
+      },
+      {
+        "command": "SETNAME",
+        "name": "clientname",
+        "type": "string",
+        "optional": true
+      }
+    ],
+    "since": "6.0.0",
+    "group": "connection"
   },
   "HEXISTS": {
     "summary": "Determine if a hash field exists",
@@ -1244,8 +1629,14 @@ var redisCommandsJSON = `
         "type": "key"
       },
       {
-        "name": ["field", "value"],
-        "type": ["string", "string"],
+        "name": [
+          "field",
+          "value"
+        ],
+        "type": [
+          "string",
+          "string"
+        ],
         "multiple": true
       }
     ],
@@ -1254,19 +1645,22 @@ var redisCommandsJSON = `
   },
   "HSET": {
     "summary": "Set the string value of a hash field",
-    "complexity": "O(1)",
+    "complexity": "O(1) for each field/value pair added, so O(N) to add N field/value pairs when the command is called with multiple field/value pairs.",
     "arguments": [
       {
         "name": "key",
         "type": "key"
       },
       {
-        "name": "field",
-        "type": "string"
-      },
-      {
-        "name": "value",
-        "type": "string"
+        "name": [
+          "field",
+          "value"
+        ],
+        "type": [
+          "string",
+          "string"
+        ],
+        "multiple": true
       }
     ],
     "since": "2.0.0",
@@ -1376,6 +1770,19 @@ var redisCommandsJSON = `
     "since": "1.0.0",
     "group": "server"
   },
+  "LOLWUT": {
+    "summary": "Display some computer art and the Redis version",
+    "arguments": [
+      {
+        "command": "VERSION",
+        "name": "version",
+        "type": "integer",
+        "optional": true
+      }
+    ],
+    "since": "5.0.0",
+    "group": "server"
+  },
   "KEYS": {
     "summary": "Find all keys matching the given pattern",
     "complexity": "O(N) with N being the number of keys in the database, under the assumption that the key names in the database and the given pattern have limited length.",
@@ -1420,14 +1827,17 @@ var redisCommandsJSON = `
       {
         "name": "where",
         "type": "enum",
-        "enum": ["BEFORE", "AFTER"]
+        "enum": [
+          "BEFORE",
+          "AFTER"
+        ]
       },
       {
         "name": "pivot",
         "type": "string"
       },
       {
-        "name": "value",
+        "name": "element",
         "type": "string"
       }
     ],
@@ -1459,15 +1869,15 @@ var redisCommandsJSON = `
     "group": "list"
   },
   "LPUSH": {
-    "summary": "Prepend one or multiple values to a list",
-    "complexity": "O(1)",
+    "summary": "Prepend one or multiple elements to a list",
+    "complexity": "O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.",
     "arguments": [
       {
         "name": "key",
         "type": "key"
       },
       {
-        "name": "value",
+        "name": "element",
         "type": "string",
         "multiple": true
       }
@@ -1476,16 +1886,17 @@ var redisCommandsJSON = `
     "group": "list"
   },
   "LPUSHX": {
-    "summary": "Prepend a value to a list, only if the list exists",
-    "complexity": "O(1)",
+    "summary": "Prepend an element to a list, only if the list exists",
+    "complexity": "O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.",
     "arguments": [
       {
         "name": "key",
         "type": "key"
       },
       {
-        "name": "value",
-        "type": "string"
+        "name": "element",
+        "type": "string",
+        "multiple": true
       }
     ],
     "since": "2.2.0",
@@ -1513,7 +1924,7 @@ var redisCommandsJSON = `
   },
   "LREM": {
     "summary": "Remove elements from a list",
-    "complexity": "O(N) where N is the length of the list.",
+    "complexity": "O(N+M) where N is the length of the list and M is the number of elements removed.",
     "arguments": [
       {
         "name": "key",
@@ -1524,7 +1935,7 @@ var redisCommandsJSON = `
         "type": "integer"
       },
       {
-        "name": "value",
+        "name": "element",
         "type": "string"
       }
     ],
@@ -1544,7 +1955,7 @@ var redisCommandsJSON = `
         "type": "integer"
       },
       {
-        "name": "value",
+        "name": "element",
         "type": "string"
       }
     ],
@@ -1580,7 +1991,6 @@ var redisCommandsJSON = `
     "summary": "Show helpful text about the different subcommands",
     "since": "4.0.0",
     "group": "server"
-
   },
   "MEMORY MALLOC-STATS": {
     "summary": "Show allocator internal stats",
@@ -1643,7 +2053,10 @@ var redisCommandsJSON = `
       {
         "name": "key",
         "type": "enum",
-        "enum": ["key", "\"\""]
+        "enum": [
+          "key",
+          "\"\""
+        ]
       },
       {
         "name": "destination-db",
@@ -1656,13 +2069,23 @@ var redisCommandsJSON = `
       {
         "name": "copy",
         "type": "enum",
-        "enum": ["COPY"],
+        "enum": [
+          "COPY"
+        ],
         "optional": true
       },
       {
         "name": "replace",
         "type": "enum",
-        "enum": ["REPLACE"],
+        "enum": [
+          "REPLACE"
+        ],
+        "optional": true
+      },
+      {
+        "command": "AUTH",
+        "name": "password",
+        "type": "string",
         "optional": true
       },
       {
@@ -1675,6 +2098,42 @@ var redisCommandsJSON = `
     ],
     "since": "2.6.0",
     "group": "generic"
+  },
+  "MODULE LIST": {
+    "summary": "List all modules loaded by the server",
+    "complexity": "O(N) where N is the number of loaded modules.",
+    "since": "4.0.0",
+    "group": "server"
+  },
+  "MODULE LOAD": {
+    "summary": "Load a module",
+    "complexity": "O(1)",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string"
+      },
+      {
+        "name": "arg",
+        "type": "string",
+        "variadic": true,
+        "optional": true
+      }
+    ],
+    "since": "4.0.0",
+    "group": "server"
+  },
+  "MODULE UNLOAD": {
+    "summary": "Unload a module",
+    "complexity": "O(1)",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "since": "4.0.0",
+    "group": "server"
   },
   "MONITOR": {
     "summary": "Listen for all requests received by the server in real time",
@@ -1702,8 +2161,14 @@ var redisCommandsJSON = `
     "complexity": "O(N) where N is the number of keys to set.",
     "arguments": [
       {
-        "name": ["key", "value"],
-        "type": ["key", "string"],
+        "name": [
+          "key",
+          "value"
+        ],
+        "type": [
+          "key",
+          "string"
+        ],
         "multiple": true
       }
     ],
@@ -1715,8 +2180,14 @@ var redisCommandsJSON = `
     "complexity": "O(N) where N is the number of keys to set.",
     "arguments": [
       {
-        "name": ["key", "value"],
-        "type": ["key", "string"],
+        "name": [
+          "key",
+          "value"
+        ],
+        "type": [
+          "key",
+          "string"
+        ],
         "multiple": true
       }
     ],
@@ -1874,8 +2345,12 @@ var redisCommandsJSON = `
     "complexity": "O(N) where N is the number of patterns the client is already subscribed to.",
     "arguments": [
       {
-        "name": ["pattern"],
-        "type": ["pattern"],
+        "name": [
+          "pattern"
+        ],
+        "type": [
+          "pattern"
+        ],
         "multiple": true
       }
     ],
@@ -1954,13 +2429,13 @@ var redisCommandsJSON = `
     "group": "generic"
   },
   "READONLY": {
-    "summary": "Enables read queries for a connection to a cluster slave node",
+    "summary": "Enables read queries for a connection to a cluster replica node",
     "complexity": "O(1)",
     "since": "3.0.0",
     "group": "cluster"
   },
   "READWRITE": {
-    "summary": "Disables read queries for a connection to a cluster slave node",
+    "summary": "Disables read queries for a connection to a cluster replica node",
     "complexity": "O(1)",
     "since": "3.0.0",
     "group": "cluster"
@@ -2016,10 +2491,31 @@ var redisCommandsJSON = `
       {
         "name": "replace",
         "type": "enum",
-        "enum": ["REPLACE"],
+        "enum": [
+          "REPLACE"
+        ],
+        "optional": true
+      },
+      {
+        "name": "absttl",
+        "type": "enum",
+        "enum": [
+          "ABSTTL"
+        ],
+        "optional": true
+      },
+      {
+        "command": "IDLETIME",
+        "name": "seconds",
+        "type": "integer",
+        "optional": true
+      },
+      {
+        "command": "FREQ",
+        "name": "frequency",
+        "type": "integer",
         "optional": true
       }
-
     ],
     "since": "2.6.0",
     "group": "generic"
@@ -2058,15 +2554,15 @@ var redisCommandsJSON = `
     "group": "list"
   },
   "RPUSH": {
-    "summary": "Append one or multiple values to a list",
-    "complexity": "O(1)",
+    "summary": "Append one or multiple elements to a list",
+    "complexity": "O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.",
     "arguments": [
       {
         "name": "key",
         "type": "key"
       },
       {
-        "name": "value",
+        "name": "element",
         "type": "string",
         "multiple": true
       }
@@ -2075,16 +2571,17 @@ var redisCommandsJSON = `
     "group": "list"
   },
   "RPUSHX": {
-    "summary": "Append a value to a list, only if the list exists",
-    "complexity": "O(1)",
+    "summary": "Append an element to a list, only if the list exists",
+    "complexity": "O(1) for each element added, so O(N) to add N elements when the command is called with multiple arguments.",
     "arguments": [
       {
         "name": "key",
         "type": "key"
       },
       {
-        "name": "value",
-        "type": "string"
+        "name": "element",
+        "type": "string",
+        "multiple": true
       }
     ],
     "since": "2.2.0",
@@ -2131,7 +2628,11 @@ var redisCommandsJSON = `
       {
         "name": "mode",
         "type": "enum",
-        "enum": ["YES", "SYNC", "NO"]
+        "enum": [
+          "YES",
+          "SYNC",
+          "NO"
+        ]
       }
     ],
     "since": "3.2.0",
@@ -2228,15 +2729,29 @@ var redisCommandsJSON = `
         "type": "string"
       },
       {
-        "command": "expiration",
+        "name": "expiration",
         "type": "enum",
-        "enum": ["EX seconds", "PX milliseconds"],
+        "enum": [
+          "EX seconds",
+          "PX milliseconds"
+        ],
         "optional": true
       },
       {
         "name": "condition",
         "type": "enum",
-        "enum": ["NX", "XX"],
+        "enum": [
+          "NX",
+          "XX"
+        ],
+        "optional": true
+      },
+      {
+        "name": "keepttl",
+        "type": "enum",
+        "enum": [
+          "KEEPTTL"
+        ],
         "optional": true
       }
     ],
@@ -2257,7 +2772,7 @@ var redisCommandsJSON = `
       },
       {
         "name": "value",
-        "type": "string"
+        "type": "integer"
       }
     ],
     "since": "2.2.0",
@@ -2325,7 +2840,10 @@ var redisCommandsJSON = `
       {
         "name": "save-mode",
         "type": "enum",
-        "enum": ["NOSAVE", "SAVE"],
+        "enum": [
+          "NOSAVE",
+          "SAVE"
+        ],
         "optional": true
       }
     ],
@@ -2379,7 +2897,7 @@ var redisCommandsJSON = `
     "group": "set"
   },
   "SLAVEOF": {
-    "summary": "Make the server a slave of another instance, or promote it as master",
+    "summary": "Make the server a replica of another instance, or promote it as master. Deprecated starting with Redis 5. Use REPLICAOF instead.",
     "arguments": [
       {
         "name": "host",
@@ -2391,6 +2909,21 @@ var redisCommandsJSON = `
       }
     ],
     "since": "1.0.0",
+    "group": "server"
+  },
+  "REPLICAOF": {
+    "summary": "Make the server a replica of another instance, or promote it as master.",
+    "arguments": [
+      {
+        "name": "host",
+        "type": "string"
+      },
+      {
+        "name": "port",
+        "type": "string"
+      }
+    ],
+    "since": "5.0.0",
     "group": "server"
   },
   "SLOWLOG": {
@@ -2457,8 +2990,14 @@ var redisCommandsJSON = `
       },
       {
         "command": "LIMIT",
-        "name": ["offset", "count"],
-        "type": ["integer", "integer"],
+        "name": [
+          "offset",
+          "count"
+        ],
+        "type": [
+          "integer",
+          "integer"
+        ],
         "optional": true
       },
       {
@@ -2471,13 +3010,18 @@ var redisCommandsJSON = `
       {
         "name": "order",
         "type": "enum",
-        "enum": ["ASC", "DESC"],
+        "enum": [
+          "ASC",
+          "DESC"
+        ],
         "optional": true
       },
       {
         "name": "sorting",
         "type": "enum",
-        "enum": ["ALPHA"],
+        "enum": [
+          "ALPHA"
+        ],
         "optional": true
       },
       {
@@ -2541,6 +3085,26 @@ var redisCommandsJSON = `
     "since": "1.0.0",
     "group": "set"
   },
+  "STRALGO": {
+    "summary": "Run algorithms (currently LCS) against strings",
+    "complexity": "For LCS O(strlen(s1)*strlen(s2))",
+    "arguments": [
+      {
+        "name": "algorithm",
+        "type": "enum",
+        "enum": [
+          "LCS"
+        ]
+      },
+      {
+        "name": "algo-specific-argument",
+        "type": "string",
+        "multiple": true
+      }
+    ],
+    "since": "6.0.0",
+    "group": "string"
+  },
   "STRLEN": {
     "summary": "Get the length of the value stored in a key",
     "complexity": "O(1)",
@@ -2558,8 +3122,8 @@ var redisCommandsJSON = `
     "complexity": "O(N) where N is the number of channels to subscribe to.",
     "arguments": [
       {
-        "name": ["channel"],
-        "type": ["string"],
+        "name": "channel",
+        "type": "string",
         "multiple": true
       }
     ],
@@ -2600,20 +3164,35 @@ var redisCommandsJSON = `
     "summary": "Swaps two Redis databases",
     "arguments": [
       {
-        "name": "index",
+        "name": "index1",
         "type": "integer"
       },
       {
-        "name": "index",
+        "name": "index2",
         "type": "integer"
       }
     ],
     "since": "4.0.0",
-    "group": "connection"
+    "group": "server"
   },
   "SYNC": {
     "summary": "Internal command used for replication",
     "since": "1.0.0",
+    "group": "server"
+  },
+  "PSYNC": {
+    "summary": "Internal command used for replication",
+    "arguments": [
+      {
+        "name": "replicationid",
+        "type": "integer"
+      },
+      {
+        "name": "offset",
+        "type": "integer"
+      }
+    ],
+    "since": "2.8.0",
     "group": "server"
   },
   "TIME": {
@@ -2697,7 +3276,7 @@ var redisCommandsJSON = `
     "complexity": "O(1)",
     "arguments": [
       {
-        "name": "numslaves",
+        "name": "numreplicas",
         "type": "integer"
       },
       {
@@ -2732,24 +3311,37 @@ var redisCommandsJSON = `
       {
         "name": "condition",
         "type": "enum",
-        "enum": ["NX","XX"],
+        "enum": [
+          "NX",
+          "XX"
+        ],
         "optional": true
       },
       {
         "name": "change",
         "type": "enum",
-        "enum": ["CH"],
+        "enum": [
+          "CH"
+        ],
         "optional": true
       },
       {
         "name": "increment",
         "type": "enum",
-        "enum": ["INCR"],
+        "enum": [
+          "INCR"
+        ],
         "optional": true
       },
       {
-        "name": ["score", "member"],
-        "type": ["double", "string"],
+        "name": [
+          "score",
+          "member"
+        ],
+        "type": [
+          "double",
+          "string"
+        ],
         "multiple": true
       }
     ],
@@ -2836,7 +3428,11 @@ var redisCommandsJSON = `
         "command": "AGGREGATE",
         "name": "aggregate",
         "type": "enum",
-        "enum": ["SUM", "MIN", "MAX"],
+        "enum": [
+          "SUM",
+          "MIN",
+          "MAX"
+        ],
         "optional": true
       }
     ],
@@ -2916,7 +3512,9 @@ var redisCommandsJSON = `
       {
         "name": "withscores",
         "type": "enum",
-        "enum": ["WITHSCORES"],
+        "enum": [
+          "WITHSCORES"
+        ],
         "optional": true
       }
     ],
@@ -2941,8 +3539,14 @@ var redisCommandsJSON = `
       },
       {
         "command": "LIMIT",
-        "name": ["offset", "count"],
-        "type": ["integer", "integer"],
+        "name": [
+          "offset",
+          "count"
+        ],
+        "type": [
+          "integer",
+          "integer"
+        ],
         "optional": true
       }
     ],
@@ -2967,8 +3571,14 @@ var redisCommandsJSON = `
       },
       {
         "command": "LIMIT",
-        "name": ["offset", "count"],
-        "type": ["integer", "integer"],
+        "name": [
+          "offset",
+          "count"
+        ],
+        "type": [
+          "integer",
+          "integer"
+        ],
         "optional": true
       }
     ],
@@ -2994,13 +3604,21 @@ var redisCommandsJSON = `
       {
         "name": "withscores",
         "type": "enum",
-        "enum": ["WITHSCORES"],
+        "enum": [
+          "WITHSCORES"
+        ],
         "optional": true
       },
       {
         "command": "LIMIT",
-        "name": ["offset", "count"],
-        "type": ["integer", "integer"],
+        "name": [
+          "offset",
+          "count"
+        ],
+        "type": [
+          "integer",
+          "integer"
+        ],
         "optional": true
       }
     ],
@@ -3119,7 +3737,9 @@ var redisCommandsJSON = `
       {
         "name": "withscores",
         "type": "enum",
-        "enum": ["WITHSCORES"],
+        "enum": [
+          "WITHSCORES"
+        ],
         "optional": true
       }
     ],
@@ -3145,13 +3765,21 @@ var redisCommandsJSON = `
       {
         "name": "withscores",
         "type": "enum",
-        "enum": ["WITHSCORES"],
+        "enum": [
+          "WITHSCORES"
+        ],
         "optional": true
       },
       {
         "command": "LIMIT",
-        "name": ["offset", "count"],
-        "type": ["integer", "integer"],
+        "name": [
+          "offset",
+          "count"
+        ],
+        "type": [
+          "integer",
+          "integer"
+        ],
         "optional": true
       }
     ],
@@ -3218,7 +3846,11 @@ var redisCommandsJSON = `
         "command": "AGGREGATE",
         "name": "aggregate",
         "type": "enum",
-        "enum": ["SUM", "MIN", "MAX"],
+        "enum": [
+          "SUM",
+          "MIN",
+          "MAX"
+        ],
         "optional": true
       }
     ],
@@ -3243,6 +3875,12 @@ var redisCommandsJSON = `
         "command": "COUNT",
         "name": "count",
         "type": "integer",
+        "optional": true
+      },
+      {
+        "command": "TYPE",
+        "name": "type",
+        "type": "string",
         "optional": true
       }
     ],
@@ -3333,9 +3971,49 @@ var redisCommandsJSON = `
     "since": "2.8.0",
     "group": "sorted_set"
   },
+  "XINFO": {
+    "summary": "Get information on streams and consumer groups",
+    "complexity": "O(N) with N being the number of returned items for the subcommands CONSUMERS and GROUPS. The STREAM subcommand is O(log N) with N being the number of items in the stream.",
+    "arguments": [
+      {
+        "command": "CONSUMERS",
+        "name": [
+          "key",
+          "groupname"
+        ],
+        "type": [
+          "key",
+          "string"
+        ],
+        "optional": true
+      },
+      {
+        "command": "GROUPS",
+        "name": "key",
+        "type": "key",
+        "optional": true
+      },
+      {
+        "command": "STREAM",
+        "name": "key",
+        "type": "key",
+        "optional": true
+      },
+      {
+        "name": "help",
+        "type": "enum",
+        "enum": [
+          "HELP"
+        ],
+        "optional": true
+      }
+    ],
+    "since": "5.0.0",
+    "group": "stream"
+  },
   "XADD": {
     "summary": "Appends a new entry to a stream",
-    "complexity": "O(log(N)) with N being the number of items already into the stream.",
+    "complexity": "O(1)",
     "arguments": [
       {
         "name": "key",
@@ -3346,8 +4024,62 @@ var redisCommandsJSON = `
         "type": "string"
       },
       {
-        "name": ["field", "string"],
-        "type": ["value", "string"],
+        "name": [
+          "field",
+          "value"
+        ],
+        "type": [
+          "string",
+          "string"
+        ],
+        "multiple": true
+      }
+    ],
+    "since": "5.0.0",
+    "group": "stream"
+  },
+  "XTRIM": {
+    "summary": "Trims the stream to (approximately if '~' is passed) a certain size",
+    "complexity": "O(N), with N being the number of evicted entries. Constant times are very small however, since entries are organized in macro nodes containing multiple entries that can be released with a single deallocation.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "key"
+      },
+      {
+        "name": "strategy",
+        "type": "enum",
+        "enum": [
+          "MAXLEN"
+        ]
+      },
+      {
+        "name": "approx",
+        "type": "enum",
+        "enum": [
+          "~"
+        ],
+        "optional": true
+      },
+      {
+        "name": "count",
+        "type": "integer"
+      }
+    ],
+    "since": "5.0.0",
+    "group": "stream"
+  },
+  "XDEL": {
+    "summary": "Removes the specified entries from the stream. Returns the number of items actually deleted, that may be different from the number of IDs passed in case certain IDs do not exist.",
+    "complexity": "O(1) for each single item to delete in the stream, regardless of the stream size.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "key"
+      },
+      {
+        "name": "ID",
+        "type": "string",
         "multiple": true
       }
     ],
@@ -3356,7 +4088,7 @@ var redisCommandsJSON = `
   },
   "XRANGE": {
     "summary": "Return a range of elements in a stream, with IDs matching the specified IDs interval",
-    "complexity": "O(log(N)+M) with N being the number of elements in the stream and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(log(N)).",
+    "complexity": "O(N) with N being the number of elements being returned. If N is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1).",
     "arguments": [
       {
         "name": "key",
@@ -3382,7 +4114,7 @@ var redisCommandsJSON = `
   },
   "XREVRANGE": {
     "summary": "Return a range of elements in a stream, with IDs matching the specified IDs interval, in reverse order (from greater to smaller IDs) compared to XRANGE",
-    "complexity": "O(log(N)+M) with N being the number of elements in the stream and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(log(N)).",
+    "complexity": "O(N) with N being the number of elements returned. If N is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1).",
     "arguments": [
       {
         "name": "key",
@@ -3420,7 +4152,7 @@ var redisCommandsJSON = `
   },
   "XREAD": {
     "summary": "Return never seen elements in multiple streams, with IDs greater than the ones reported by the caller for each stream. Can block.",
-    "complexity": "For each stream mentioned: O(log(N)+M) with N being the number of elements in the stream and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(log(N)). On the other side, XADD will pay the O(N) time in order to serve the N clients blocked on the stream getting new data.",
+    "complexity": "For each stream mentioned: O(N) with N being the number of elements being returned, it means that XREAD-ing with a fixed COUNT is O(1). Note that when the BLOCK option is used, XADD will pay O(M) time in order to serve the M clients blocked on the stream getting new data.",
     "arguments": [
       {
         "command": "COUNT",
@@ -3437,7 +4169,9 @@ var redisCommandsJSON = `
       {
         "name": "streams",
         "type": "enum",
-        "enum": ["STREAMS"]
+        "enum": [
+          "STREAMS"
+        ]
       },
       {
         "name": "key",
@@ -3445,9 +4179,71 @@ var redisCommandsJSON = `
         "multiple": true
       },
       {
-        "name": "ID",
+        "name": "id",
         "type": "string",
         "multiple": true
+      }
+    ],
+    "since": "5.0.0",
+    "group": "stream"
+  },
+  "XGROUP": {
+    "summary": "Create, destroy, and manage consumer groups.",
+    "complexity": "O(1) for all the subcommands, with the exception of the DESTROY subcommand which takes an additional O(M) time in order to delete the M entries inside the consumer group pending entries list (PEL).",
+    "arguments": [
+      {
+        "command": "CREATE",
+        "name": [
+          "key",
+          "groupname",
+          "id-or-$"
+        ],
+        "type": [
+          "key",
+          "string",
+          "string"
+        ],
+        "optional": true
+      },
+      {
+        "command": "SETID",
+        "name": [
+          "key",
+          "groupname",
+          "id-or-$"
+        ],
+        "type": [
+          "key",
+          "string",
+          "string"
+        ],
+        "optional": true
+      },
+      {
+        "command": "DESTROY",
+        "name": [
+          "key",
+          "groupname"
+        ],
+        "type": [
+          "key",
+          "string"
+        ],
+        "optional": true
+      },
+      {
+        "command": "DELCONSUMER",
+        "name": [
+          "key",
+          "groupname",
+          "consumername"
+        ],
+        "type": [
+          "key",
+          "string",
+          "string"
+        ],
+        "optional": true
       }
     ],
     "since": "5.0.0",
@@ -3455,12 +4251,18 @@ var redisCommandsJSON = `
   },
   "XREADGROUP": {
     "summary": "Return new entries from a stream using a consumer group, or access the history of the pending entries for a given consumer. Can block.",
-    "complexity": "For each stream mentioned: O(log(N)+M) with N being the number of elements in the stream and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(log(N)). On the other side, XADD will pay the O(N) time in order to serve the N clients blocked on the stream getting new data.",
+    "complexity": "For each stream mentioned: O(M) with M being the number of elements returned. If M is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1). On the other side when XREADGROUP blocks, XADD will pay the O(N) time in order to serve the N clients blocked on the stream getting new data.",
     "arguments": [
       {
         "command": "GROUP",
-        "name": ["group", "consumer"],
-        "type": ["string", "string"]
+        "name": [
+          "group",
+          "consumer"
+        ],
+        "type": [
+          "string",
+          "string"
+        ]
       },
       {
         "command": "COUNT",
@@ -3475,9 +4277,19 @@ var redisCommandsJSON = `
         "optional": true
       },
       {
+        "name": "noack",
+        "type": "enum",
+        "enum": [
+          "NOACK"
+        ],
+        "optional": true
+      },
+      {
         "name": "streams",
         "type": "enum",
-        "enum": ["STREAMS"]
+        "enum": [
+          "STREAMS"
+        ]
       },
       {
         "name": "key",
@@ -3493,9 +4305,9 @@ var redisCommandsJSON = `
     "since": "5.0.0",
     "group": "stream"
   },
-  "XPENDING": {
-    "summary": "Return information and entries from a stream consumer group pending entries list, that are messages fetched but never acknowledged.",
-    "complexity": "O(log(N)+M) with N being the number of elements in the consumer group pending entries list, and M the number of elements being returned. When the command returns just the summary it runs in O(1) time assuming the list of consumers is small, otherwise there is additional O(N) time needed to iterate every consumer.",
+  "XACK": {
+    "summary": "Marks a pending message as correctly processed, effectively removing it from the pending entries list of the consumer group. Return value of the command is the number of messages successfully acknowledged, that is, the IDs we were actually able to resolve in the PEL.",
+    "complexity": "O(1) for each message ID processed.",
     "arguments": [
       {
         "name": "key",
@@ -3506,8 +4318,98 @@ var redisCommandsJSON = `
         "type": "string"
       },
       {
-        "name": ["start", "end", "count"],
-        "type": ["string", "string", "integer"],
+        "name": "ID",
+        "type": "string",
+        "multiple": true
+      }
+    ],
+    "since": "5.0.0",
+    "group": "stream"
+  },
+  "XCLAIM": {
+    "summary": "Changes (or acquires) ownership of a message in a consumer group, as if the message was delivered to the specified consumer.",
+    "complexity": "O(log N) with N being the number of messages in the PEL of the consumer group.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "key"
+      },
+      {
+        "name": "group",
+        "type": "string"
+      },
+      {
+        "name": "consumer",
+        "type": "string"
+      },
+      {
+        "name": "min-idle-time",
+        "type": "string"
+      },
+      {
+        "name": "ID",
+        "type": "string",
+        "multiple": true
+      },
+      {
+        "command": "IDLE",
+        "name": "ms",
+        "type": "integer",
+        "optional": true
+      },
+      {
+        "command": "TIME",
+        "name": "ms-unix-time",
+        "type": "integer",
+        "optional": true
+      },
+      {
+        "command": "RETRYCOUNT",
+        "name": "count",
+        "type": "integer",
+        "optional": true
+      },
+      {
+        "name": "force",
+        "enum": [
+          "FORCE"
+        ],
+        "optional": true
+      },
+      {
+        "name": "justid",
+        "enum": [
+          "JUSTID"
+        ],
+        "optional": true
+      }
+    ],
+    "since": "5.0.0",
+    "group": "stream"
+  },
+  "XPENDING": {
+    "summary": "Return information and entries from a stream consumer group pending entries list, that are messages fetched but never acknowledged.",
+    "complexity": "O(N) with N being the number of elements returned, so asking for a small fixed number of entries per call is O(1). When the command returns just the summary it runs in O(1) time assuming the list of consumers is small, otherwise there is additional O(N) time needed to iterate every consumer.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "key"
+      },
+      {
+        "name": "group",
+        "type": "string"
+      },
+      {
+        "name": [
+          "start",
+          "end",
+          "count"
+        ],
+        "type": [
+          "string",
+          "string",
+          "integer"
+        ],
         "optional": true
       },
       {
@@ -3518,6 +4420,55 @@ var redisCommandsJSON = `
     ],
     "since": "5.0.0",
     "group": "stream"
+  },
+  "LATENCY DOCTOR": {
+    "summary": "Return a human readable latency analysis report.",
+    "since": "2.8.13",
+    "group": "server"
+  },
+  "LATENCY GRAPH": {
+    "summary": "Return a latency graph for the event.",
+    "arguments": [
+      {
+        "name": "event",
+        "type": "string"
+      }
+    ],
+    "since": "2.8.13",
+    "group": "server"
+  },
+  "LATENCY HISTORY": {
+    "summary": "Return timestamp-latency samples for the event.",
+    "arguments": [
+      {
+        "name": "event",
+        "type": "string"
+      }
+    ],
+    "since": "2.8.13",
+    "group": "server"
+  },
+  "LATENCY LATEST": {
+    "summary": "Return the latest latency samples for all events.",
+    "since": "2.8.13",
+    "group": "server"
+  },
+  "LATENCY RESET": {
+    "summary": "Reset latency data for one or more events.",
+    "arguments": [
+      {
+        "name": "event",
+        "type": "string",
+        "optional": true
+      }
+    ],
+    "since": "2.8.13",
+    "group": "server"
+  },
+  "LATENCY HELP": {
+    "summary": "Show helpful text about the different subcommands.",
+    "since": "2.8.13",
+    "group": "server"
   }
 }
 `
