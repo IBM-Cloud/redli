@@ -62,7 +62,7 @@ var (
 )
 
 func main() {
-	kingpin.Version("0.4.5")
+	kingpin.Version("0.5.0")
 	kingpin.Parse()
 
 	if *forceraw {
