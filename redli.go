@@ -43,7 +43,7 @@ var (
 	redisurl      = kingpin.Flag("uri", "URI to connect to").Short('u').URL()
 	redishost     = kingpin.Flag("host", "Host to connect to").Short('h').Default("127.0.0.1").String()
 	redisport     = kingpin.Flag("port", "Port to connect to").Short('p').Default("6379").Int()
-	redisuser     = kingpin.Flag("redisuser", "Username to use when connecting. Supported since Redis 6.").Short('r').Default("default").String()
+	redisuser     = kingpin.Flag("redisuser", "Username to use when connecting. Supported since Redis 6.").Short('r').Default("").String()
 	redisauth     = kingpin.Flag("auth", "Password to use when connecting").Short('a').String()
 	redisdb       = kingpin.Flag("ndb", "Redis database to access").Short('n').Default("0").Int()
 	redistls      = kingpin.Flag("tls", "Enable TLS/SSL").Default("false").Bool()
@@ -62,7 +62,7 @@ var (
 )
 
 func main() {
-	kingpin.Version("0.5.0")
+	kingpin.Version("0.5.1")
 	kingpin.Parse()
 
 	if *forceraw {
