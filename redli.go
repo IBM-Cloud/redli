@@ -26,6 +26,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -62,7 +63,7 @@ var (
 )
 
 func main() {
-	kingpin.Version("0.5.1")
+	kingpin.Version("0.5.2")
 	kingpin.Parse()
 
 	if *forceraw {
@@ -108,38 +109,29 @@ func main() {
 		connectionurl = (*redisurl).String()
 	}
 
+	config := &tls.Config{InsecureSkipVerify: *skipverify}
 	// If we have a certificate, then assume TLS
 	if len(cert) > 0 {
-
-		config := &tls.Config{RootCAs: x509.NewCertPool(),
-			ClientAuth:         tls.RequireAndVerifyClientCert,
-			InsecureSkipVerify: *skipverify}
+		config.RootCAs = x509.NewCertPool()
+		config.ClientAuth = tls.RequireAndVerifyClientCert
 
 		ok := config.RootCAs.AppendCertsFromPEM(cert)
 		if !ok {
 			log.Fatal("Couldn't load cert data")
 		}
-
-		var err error
-		conn, err = redis.DialURL(connectionurl, redis.DialTLSConfig(config))
-		if err != nil {
-			log.Fatal("Dial TLS ", err)
-		}
-		defer conn.Close()
-	} else {
-		var err error
-		if *skipverify {
-			config := &tls.Config{InsecureSkipVerify: *skipverify}
-			conn, err = redis.DialURL(connectionurl, redis.DialTLSConfig(config))
-		} else {
-			conn, err = redis.DialURL(connectionurl)
-		}
-
-		if err != nil {
-			log.Fatal("Dial ", err)
-		}
-		defer conn.Close()
 	}
+	conn, err := redis.DialURL(connectionurl, redis.DialTLSConfig(config))
+
+	if err != nil && err.Error() == "ERR wrong number of arguments for 'auth' command" {
+		re := regexp.MustCompile(`^(rediss?://)(.*)(:.*@.*)`)
+		connectionurl = re.ReplaceAllString(connectionurl, `$1$3`)
+		conn, err = redis.DialURL(connectionurl, redis.DialTLSConfig(config))
+	}
+
+	if err != nil {
+		log.Fatal("Dial ", err)
+	}
+	defer conn.Close()
 
 	// We may not need to carry on setting up the interactive front end so...
 	if *eval != nil {
