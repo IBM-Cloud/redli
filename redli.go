@@ -123,6 +123,9 @@ func main() {
 	conn, err := redis.DialURL(connectionurl, redis.DialTLSConfig(config))
 
 	if err != nil && err.Error() == "ERR wrong number of arguments for 'auth' command" {
+		// Fallback to support usernames with Redis versions without ACL support
+		// Since at this point we constructed a valid URL that has to be escaped properly
+		// this regex should work...
 		re := regexp.MustCompile(`^(rediss?://)(.*)(:.*@.*)`)
 		connectionurl = re.ReplaceAllString(connectionurl, `$1$3`)
 		conn, err = redis.DialURL(connectionurl, redis.DialTLSConfig(config))
