@@ -187,7 +187,7 @@ func main() {
 	if *commandargs != nil {
 		command := *commandargs
 
-		catchMonitorCmd(command[0])
+		catchMonitorCmd(conn, command[0])
 
 		var args = make([]interface{}, len(command[1:]))
 		for i, d := range command[1:] {
@@ -319,7 +319,7 @@ func main() {
 			args[i] = d
 		}
 
-		catchMonitorCmd(parts[0])
+		catchMonitorCmd(conn, parts[0])
 
 		result, err := conn.Do(parts[0], args...)
 
@@ -327,7 +327,9 @@ func main() {
 	}
 }
 
-func catchMonitorCmd(command string) {
+// catchMonitorCmd to go into a "stream" mode to stream back
+// every command processed by Redis server.
+func catchMonitorCmd(conn redis.Conn, command string) {
 	if strings.ToLower(command) == "monitor" {
 		conn.Do("monitor")
 		for {
