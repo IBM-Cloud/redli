@@ -48,6 +48,7 @@ var (
 	redisauth     = kingpin.Flag("auth", "Password to use when connecting").Short('a').String()
 	redisdb       = kingpin.Flag("ndb", "Redis database to access").Short('n').Default("0").Int()
 	redistls      = kingpin.Flag("tls", "Enable TLS/SSL").Default("false").Bool()
+	servername    = kingpin.Flag("servername", "ServerName is used to verify the hostname on the returned certificates unless skipverify is set.").Short('s').String()
 	skipverify    = kingpin.Flag("skipverify", "Don't validate certificates").Default("false").Bool()
 	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
 	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
@@ -114,12 +115,16 @@ func main() {
 	if len(cert) > 0 {
 		config.RootCAs = x509.NewCertPool()
 		config.ClientAuth = tls.RequireAndVerifyClientCert
-
 		ok := config.RootCAs.AppendCertsFromPEM(cert)
 		if !ok {
 			log.Fatal("Couldn't load cert data")
 		}
 	}
+
+	if servername != nil && servername != "" {
+		config.ServerName = servername
+	}
+
 	conn, err := redis.DialURL(connectionurl, redis.DialTLSConfig(config))
 
 	if err != nil && err.Error() == "ERR wrong number of arguments for 'auth' command" {
