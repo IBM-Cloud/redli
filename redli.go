@@ -121,8 +121,8 @@ func main() {
 		}
 	}
 
-	if servername != nil && servername != "" {
-		config.ServerName = servername
+	if servername != nil && *servername != "" {
+		config.ServerName = *servername
 	}
 
 	conn, err := redis.DialURL(connectionurl, redis.DialTLSConfig(config))
