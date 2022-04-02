@@ -4,23 +4,20 @@ before:
   hooks:
     - go mod download
 builds:
-  - binary: redli
-    goos:
-      - windows
-      - darwin
-      - linux
-    goarch:
-      - amd64
-      - arm64
-    goarm:
-      - 7
+- binary: redli
+  goos:
+    - windows
+    - darwin
+    - linux
+  goarch:
+    - amd64
 changelog:
   sort: asc
   filters:
     exclude:
-      - "^docs:"
-      - "^test:"
-      - Merge pull request
-      - Merge branch
+    - '^docs:'
+    - '^test:'
+    - Merge pull request
+    - Merge branch
 env_files:
   github_token: ~/.config/goreleaser/github_token
