@@ -1,20 +1,29 @@
 # github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+## explicit
 github.com/alecthomas/template
 github.com/alecthomas/template/parse
 # github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d
+## explicit
 github.com/alecthomas/units
 # github.com/gomodule/redigo v1.8.2-0.20200604192220-941d323970f4
+## explicit; go 1.14
 github.com/gomodule/redigo/redis
 # github.com/mattn/go-isatty v0.0.12
+## explicit; go 1.12
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.9
+## explicit; go 1.9
 github.com/mattn/go-runewidth
 # github.com/mattn/go-shellwords v1.0.10
+## explicit; go 1.13
 github.com/mattn/go-shellwords
 # github.com/peterh/liner v1.2.0
+## explicit
 github.com/peterh/liner
 # golang.org/x/sys v0.0.0-20200519105757-fe76b779f299
+## explicit; go 1.12
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 # gopkg.in/alecthomas/kingpin.v2 v2.2.6
+## explicit
 gopkg.in/alecthomas/kingpin.v2
