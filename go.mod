@@ -1,4 +1,4 @@
-module github.com/kieranomahony98/redli
+module github.com/IBM-CLOUD/redli
 
 go 1.17
 
