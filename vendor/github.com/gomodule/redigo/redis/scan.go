@@ -23,6 +23,10 @@ import (
 	"sync"
 )
 
+var (
+	scannerType = reflect.TypeOf((*Scanner)(nil)).Elem()
+)
+
 func ensureLen(d reflect.Value, n int) {
 	if n > d.Cap() {
 		d.Set(reflect.MakeSlice(d.Type(), n, n))
@@ -352,34 +356,49 @@ func (ss *structSpec) fieldSpec(name []byte) *fieldSpec {
 }
 
 func compileStructSpec(t reflect.Type, depth map[string]int, index []int, ss *structSpec) {
+LOOP:
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		switch {
 		case f.PkgPath != "" && !f.Anonymous:
 			// Ignore unexported fields.
 		case f.Anonymous:
-			// TODO: Handle pointers. Requires change to decoder and
-			// protection against infinite recursion.
-			if f.Type.Kind() == reflect.Struct {
+			switch f.Type.Kind() {
+			case reflect.Struct:
 				compileStructSpec(f.Type, depth, append(index, i), ss)
+			case reflect.Ptr:
+				// TODO(steve): Protect against infinite recursion.
+				if f.Type.Elem().Kind() == reflect.Struct {
+					compileStructSpec(f.Type.Elem(), depth, append(index, i), ss)
+				}
 			}
 		default:
 			fs := &fieldSpec{name: f.Name}
 			tag := f.Tag.Get("redis")
-			p := strings.Split(tag, ",")
-			if len(p) > 0 {
-				if p[0] == "-" {
-					continue
+
+			var (
+				p string
+			)
+			first := true
+			for len(tag) > 0 {
+				i := strings.IndexByte(tag, ',')
+				if i < 0 {
+					p, tag = tag, ""
+				} else {
+					p, tag = tag[:i], tag[i+1:]
 				}
-				if len(p[0]) > 0 {
-					fs.name = p[0]
+				if p == "-" {
+					continue LOOP
 				}
-				for _, s := range p[1:] {
-					switch s {
+				if first && len(p) > 0 {
+					fs.name = p
+					first = false
+				} else {
+					switch p {
 					case "omitempty":
 						fs.omitEmpty = true
 					default:
-						panic(fmt.Errorf("redigo: unknown field tag %s for type %s", s, t.Name()))
+						panic(fmt.Errorf("redigo: unknown field tag %s for type %s", p, t.Name()))
 					}
 				}
 			}
@@ -412,9 +431,8 @@ func compileStructSpec(t reflect.Type, depth map[string]int, index []int, ss *st
 }
 
 var (
-	structSpecMutex  sync.RWMutex
-	structSpecCache  = make(map[reflect.Type]*structSpec)
-	defaultFieldSpec = &fieldSpec{}
+	structSpecMutex sync.RWMutex
+	structSpecCache = make(map[reflect.Type]*structSpec)
 )
 
 func structSpecForType(t reflect.Type) *structSpec {
@@ -496,9 +514,13 @@ var (
 	errScanSliceValue = errors.New("redigo.ScanSlice: dest must be non-nil pointer to a struct")
 )
 
-// ScanSlice scans src to the slice pointed to by dest. The elements the dest
-// slice must be integer, float, boolean, string, struct or pointer to struct
-// values.
+// ScanSlice scans src to the slice pointed to by dest.
+//
+// If the target is a slice of types which implement Scanner then the custom
+// RedisScan method is used otherwise the following rules apply:
+//
+// The elements in the dest slice must be integer, float, boolean, string, struct
+// or pointer to struct values.
 //
 // Struct fields must be integer, float, boolean or string values. All struct
 // fields are used unless a subset is specified using fieldNames.
@@ -514,12 +536,13 @@ func ScanSlice(src []interface{}, dest interface{}, fieldNames ...string) error 
 
 	isPtr := false
 	t := d.Type().Elem()
+	st := t
 	if t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct {
 		isPtr = true
 		t = t.Elem()
 	}
 
-	if t.Kind() != reflect.Struct {
+	if t.Kind() != reflect.Struct || st.Implements(scannerType) {
 		ensureLen(d, len(src))
 		for i, s := range src {
 			if s == nil {
