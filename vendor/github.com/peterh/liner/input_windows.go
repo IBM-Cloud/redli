@@ -111,6 +111,7 @@ type key_event_record struct {
 // These names are from the Win32 api, so they use underscores (contrary to
 // what golint suggests)
 const (
+	vk_back   = 0x08
 	vk_tab    = 0x09
 	vk_menu   = 0x12 // ALT key
 	vk_prior  = 0x21
@@ -173,14 +174,13 @@ func (s *State) readNext() (interface{}, error) {
 	}
 
 	var input input_record
-	pbuf := uintptr(unsafe.Pointer(&input))
 	var rv uint32
-	prv := uintptr(unsafe.Pointer(&rv))
 
 	var surrogate uint16
 
 	for {
-		ok, _, err := procReadConsoleInput.Call(uintptr(s.handle), pbuf, 1, prv)
+		ok, _, err := procReadConsoleInput.Call(uintptr(s.handle),
+			uintptr(unsafe.Pointer(&input)), 1, uintptr(unsafe.Pointer(&rv)))
 
 		if ok == 0 {
 			return nil, err
@@ -212,6 +212,9 @@ func (s *State) readNext() (interface{}, error) {
 
 		if ke.VirtualKeyCode == vk_tab && ke.ControlKeyState&modKeys == shiftPressed {
 			s.key = shiftTab
+		} else if ke.VirtualKeyCode == vk_back && (ke.ControlKeyState&modKeys == leftAltPressed ||
+			ke.ControlKeyState&modKeys == rightAltPressed) {
+			s.key = altBs
 		} else if ke.VirtualKeyCode == bKey && (ke.ControlKeyState&modKeys == leftAltPressed ||
 			ke.ControlKeyState&modKeys == rightAltPressed) {
 			s.key = altB

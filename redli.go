@@ -26,6 +26,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -63,6 +64,7 @@ var (
 )
 
 func main() {
+	kingpin.Version("0.5.2")
 	kingpin.Parse()
 
 	if *forceraw {
@@ -100,7 +102,7 @@ func main() {
 		}
 
 		if redisauth != nil {
-			connectionurl = connectionurl + "x:" + url.QueryEscape(*redisauth) + "@"
+			connectionurl = connectionurl + url.QueryEscape(*redisuser) + ":" + url.QueryEscape(*redisauth) + "@"
 		}
 
 		connectionurl = connectionurl + *redishost + ":" + strconv.Itoa(*redisport) + "/" + strconv.Itoa(*redisdb)
@@ -118,6 +120,13 @@ func main() {
 		if !ok {
 			log.Fatal("Couldn't load cert data")
 		}
+	}
+
+	if servername != nil && *servername != "" {
+		config.ServerName = *servername
+	}
+
+	conn, err := redis.DialURL(connectionurl, redis.DialTLSConfig(config))
 
 	}
 
@@ -189,6 +198,9 @@ func main() {
 
 	if *commandargs != nil {
 		command := *commandargs
+
+		catchMonitorCmd(conn, command[0])
+
 		var args = make([]interface{}, len(command[1:]))
 		for i, d := range command[1:] {
 			args[i] = d
@@ -319,9 +331,23 @@ func main() {
 			args[i] = d
 		}
 
+		catchMonitorCmd(conn, parts[0])
+
 		result, err := conn.Do(parts[0], args...)
 
 		printRedisResult(result, forceraw)
+	}
+}
+
+// catchMonitorCmd to go into a "stream" mode to stream back
+// every command processed by Redis server.
+func catchMonitorCmd(conn redis.Conn, command string) {
+	if strings.ToLower(command) == "monitor" {
+		conn.Do("monitor")
+		for {
+			line, _ := redis.String(conn.Receive())
+			fmt.Printf("%s\n", line)
+		}
 	}
 }
 

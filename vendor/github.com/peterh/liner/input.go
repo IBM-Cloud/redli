@@ -1,4 +1,5 @@
-// +build linux darwin openbsd freebsd netbsd
+//go:build linux || darwin || openbsd || freebsd || netbsd || solaris
+// +build linux darwin openbsd freebsd netbsd solaris
 
 package liner
 
@@ -41,7 +42,7 @@ func NewLiner() *State {
 	} else {
 		s.inputRedirected = true
 	}
-	if _, err := getMode(syscall.Stdout); err != 0 {
+	if _, err := getMode(syscall.Stdout); err != nil {
 		s.outputRedirected = true
 	}
 	if s.inputRedirected && s.outputRedirected {
@@ -52,6 +53,8 @@ func NewLiner() *State {
 		mode.Iflag &^= icrnl | inpck | istrip | ixon
 		mode.Cflag |= cs8
 		mode.Lflag &^= syscall.ECHO | icanon | iexten
+		mode.Cc[syscall.VMIN] = 1
+		mode.Cc[syscall.VTIME] = 0
 		mode.ApplyMode()
 
 		winch := make(chan os.Signal, 1)
@@ -264,9 +267,9 @@ func (s *State) readNext() (interface{}, error) {
 						return pageUp, nil
 					case 6:
 						return pageDown, nil
-					case 7:
+					case 1, 7:
 						return home, nil
-					case 8:
+					case 4, 8:
 						return end, nil
 					case 15:
 						return f5, nil
@@ -331,6 +334,9 @@ func (s *State) readNext() (interface{}, error) {
 	case 'd':
 		s.pending = s.pending[:0] // escape code complete
 		return altD, nil
+	case bs:
+		s.pending = s.pending[:0] // escape code complete
+		return altBs, nil
 	case 'f':
 		s.pending = s.pending[:0] // escape code complete
 		return altF, nil
