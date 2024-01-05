@@ -521,7 +521,7 @@ var redisCommandsJSON = `
       {
         "command": "PREFIX",
         "name": "prefix",
-        "type": "srting",
+        "type": "string",
         "optional": true
       },
       {
