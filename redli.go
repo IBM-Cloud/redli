@@ -230,14 +230,14 @@ func main() {
 
 	sort.Strings(commandstrings)
 
-	reply, err := redis.String(conn.Do("INFO"))
-	if err != nil {
-		log.Fatal(err)
-	}
+	// reply, err := redis.String(conn.Do("INFO"))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	info := redisParseInfo(reply)
+	// info := redisParseInfo(reply)
 
-	fmt.Printf("Connected to %s\n", info["redis_version"])
+	// fmt.Printf("Connected to %s\n", info["redis_version"])
 
 	liner := liner.NewLiner()
 	defer liner.Close()
