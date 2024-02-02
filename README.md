@@ -39,15 +39,27 @@ Args:
   [<commands>]  Redis commands and values
 ```
 
-* `URI`  URI to connect To. It follow the format of [the provisional IANA spec for Redis URLs](https://www.iana.org/assignments/uri-schemes/prov/redis), but with the option to denote a TLS secured connection with the protocol rediss:.
+* `URI`  URI to connect to. It follows the format of [the provisional IANA spec for Redis URLs](https://www.iana.org/assignments/uri-schemes/prov/redis), but with the option to denote a TLS secured connection with the protocol rediss:.
 
 e.g. `INFO KEYSPACE`
 
 Be aware of interactions with wild cards and special characters in the shell; quote and escape as appropriate.
 
+## Local development
+
+### Run tests
+
+The integration test will create a new redis database at IBM and will delete it at the end of the test.
+
+TODO: Which variables to pass as env var
+
+```sh
+ginkgo test
+```
+
 ## License
 
-Redli is (c) IBM Corporation 2018. All rights reserved.
+Redli is (c) IBM Corporation 2018-2024. All rights reserved.
 
 Redli is released under the Apache 2 License.
 
