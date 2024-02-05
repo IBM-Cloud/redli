@@ -230,8 +230,6 @@ func main() {
 
 	sort.Strings(commandstrings)
 
-	info := redisParseInfo(reply)
-
 	liner := liner.NewLiner()
 	defer liner.Close()
 
