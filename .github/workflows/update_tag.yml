@@ -1,4 +1,4 @@
-name: Update Values on Tag
+name: Update Redli Release version
 
 on:
   push:
