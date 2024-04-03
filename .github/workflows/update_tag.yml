@@ -1,0 +1,42 @@
+name: Update Redli Release version
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger only in case of new tag
+
+jobs:
+  update_values:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Go v1.21.4
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.4'
+      - name: Get tag and set version on release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          sed -i "s|version = \"v.*\"|version = \"$GITHUB_REF_NAME\"|" version.go
+          cat -n version.go
+      - name: Set VERSION env vars
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          if [[ $GITHUB_REF != "refs/tags/v"* ]]; then
+            VERSION="${GITHUB_SHA::7}"
+          fi
+          echo "VERSION=$VERSION" | tee -a "$GITHUB_ENV"
+      - name: Bump version on release [${{ env.VERSION }}]
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          if [[ $(git diff version.go) != "" ]]; then
+            git checkout master 
+            git add version.go
+            git commit -m "[CI] Bump version to $VERSION"
+            git push 
+          fi
