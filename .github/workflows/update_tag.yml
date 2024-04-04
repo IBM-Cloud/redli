@@ -29,14 +29,17 @@ jobs:
             VERSION="${GITHUB_SHA::7}"
           fi
           echo "VERSION=$VERSION" | tee -a "$GITHUB_ENV"
+      - name: Checkout branch
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: git checkout -B temp_branch
       - name: Bump version on release [${{ env.VERSION }}]
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           if [[ $(git diff version.go) != "" ]]; then
-            git checkout master 
             git add version.go
             git commit -m "[CI] Bump version to $VERSION"
-            git push 
+            git pull origin master
+            git push origin temp_branch:master
           fi
