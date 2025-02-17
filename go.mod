@@ -1,6 +1,6 @@
 module github.com/IBM-Cloud/redli
 
-go 1.23
+go 1.24
 
 require (
 	github.com/gomodule/redigo v1.9.2
@@ -15,5 +15,5 @@ require (
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	golang.org/x/sys v0.27.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 )
