@@ -12,6 +12,12 @@ builds:
   goarch:
     - amd64
     - arm64
+    - s390x
+  ignore:
+    - goos: darwin
+      goarch: s390x
+    - goos: windows
+      goarch: s390x
 changelog:
   sort: asc
   filters:
