@@ -1,6 +1,6 @@
 module github.com/IBM-Cloud/redli
 
-go 1.24
+go 1.25
 
 require (
 	github.com/gomodule/redigo v1.9.2
