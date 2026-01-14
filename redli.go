@@ -39,22 +39,22 @@ import (
 )
 
 var (
-	debug         = kingpin.Flag("debug", "Enable debug mode.").Bool()
-	longprompt    = kingpin.Flag("long", "Enable long prompt with host/port").Bool()
-	redisurl      = kingpin.Flag("uri", "URI to connect to").Short('u').URL()
-	redishost     = kingpin.Flag("host", "Host to connect to").Short('h').Default("127.0.0.1").String()
-	redisport     = kingpin.Flag("port", "Port to connect to").Short('p').Default("6379").Int()
-	redisuser     = kingpin.Flag("redisuser", "Username to use when connecting. Supported since Redis 6.").Short('r').Default("").String()
-	redisauth     = kingpin.Flag("auth", "Password to use when connecting").Short('a').String()
-	redisdb       = kingpin.Flag("ndb", "Redis database to access").Short('n').Default("0").Int()
-	redistls      = kingpin.Flag("tls", "Enable TLS/SSL").Default("false").Bool()
-	servername    = kingpin.Flag("servername", "ServerName is used to verify the hostname on the returned certificates unless skipverify is set.").Short('s').String()
-	skipverify    = kingpin.Flag("skipverify", "Don't validate certificates").Default("false").Bool()
-	rediscertfile = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
-	rediscertb64  = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
-	forceraw      = kingpin.Flag("raw", "Produce raw output").Bool()
-	eval          = kingpin.Flag("eval", "Evaluate a Lua script file, follow with keys a , and args").File()
-	commandargs   = kingpin.Arg("commands", "Redis commands and values").Strings()
+	debug           = kingpin.Flag("debug", "Enable debug mode.").Bool()
+	longprompt      = kingpin.Flag("long", "Enable long prompt with host/port").Bool()
+	redisurl        = kingpin.Flag("uri", "URI to connect to").Short('u').URL()
+	redishost       = kingpin.Flag("host", "Host to connect to").Short('h').Default("127.0.0.1").String()
+	redisport       = kingpin.Flag("port", "Port to connect to").Short('p').Default("6379").Int()
+	redisauth       = kingpin.Flag("auth", "Password to use when connecting").Short('a').String()
+	redisdb         = kingpin.Flag("ndb", "Redis database to access").Short('n').Default("0").Int()
+	redistls        = kingpin.Flag("tls", "Enable TLS/SSL").Default("false").Bool()
+	skipverify      = kingpin.Flag("skipverify", "Don't validate certificates").Default("false").Bool()
+	redisclientfile = kingpin.Flag("clientfile", "Self-signed client certificate for mTLS authentication").Envar("REDIS_CLIENTFILE").String()
+	redisclientkey  = kingpin.Flag("clientkey", "Self-signed client key for mTLS authentication").Envar("REDIS_KEYFILE").String()
+	rediscertfile   = kingpin.Flag("certfile", "Self-signed certificate file for validation").Envar("REDIS_CERTFILE").File()
+	rediscertb64    = kingpin.Flag("certb64", "Self-signed certificate string as base64 for validation").Envar("REDIS_CERTB64").String()
+	forceraw        = kingpin.Flag("raw", "Produce raw output").Bool()
+	eval            = kingpin.Flag("eval", "Evaluate a Lua script file, follow with keys a , and args").File()
+	commandargs     = kingpin.Arg("commands", "Redis commands and values").Strings()
 )
 
 var (
@@ -111,10 +111,11 @@ func main() {
 	}
 
 	config := &tls.Config{InsecureSkipVerify: *skipverify}
-	// If we have a certificate, then assume TLS
+
 	if len(cert) > 0 {
 		config.RootCAs = x509.NewCertPool()
 		config.ClientAuth = tls.RequireAndVerifyClientCert
+
 		ok := config.RootCAs.AppendCertsFromPEM(cert)
 		if !ok {
 			log.Fatal("Couldn't load cert data")
@@ -127,15 +128,21 @@ func main() {
 
 	conn, err := redis.DialURL(connectionurl, redis.DialTLSConfig(config))
 
-	if err != nil && err.Error() == "ERR wrong number of arguments for 'auth' command" {
-		// Fallback to support usernames with Redis versions without ACL support
-		// Since at this point we constructed a valid URL that has to be escaped properly
-		// this regex should work...
-		re := regexp.MustCompile(`^(rediss?://)(.*)(:.*@.*)`)
-		connectionurl = re.ReplaceAllString(connectionurl, `$1$3`)
-		conn, err = redis.DialURL(connectionurl, redis.DialTLSConfig(config))
 	}
 
+	if len(*redisclientfile) > 0 && len(*redisclientkey) > 0 {
+		clientcert, err := tls.LoadX509KeyPair(*redisclientfile, *redisclientkey)
+		if err != nil {
+			log.Fatal("Couldn't load cert data")
+		}
+		config.Certificates = []tls.Certificate{clientcert}
+	} else if len(*redisclientfile) > 0 {
+		log.Fatal("Missing parameter redisclientkey")
+	} else if len(*redisclientkey) > 0 {
+		log.Fatal("Missing parameter redisclientfile")
+	}
+
+	conn, err := redis.DialURL(connectionurl, redis.DialTLSConfig(config))
 	if err != nil {
 		log.Fatal("Dial ", err)
 	}
