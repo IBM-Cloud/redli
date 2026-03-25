@@ -1,0 +1,50 @@
+{
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard"
+  ],
+
+  "onboarding": false,
+  "rangeStrategy": "bump",
+  "timezone": "Asia/Kolkata",
+
+  "labels": ["dependencies"],
+
+  "separateMajorMinor": true,
+
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+
+  "ignorePaths": [
+    "**/tests/**",
+    "**/test/**"
+  ],
+
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 3am on monday"]
+  },
+
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "labels": ["dependencies", "major", "breaking-change"]
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "labels": ["dependencies", "minor"]
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "labels": ["dependencies", "patch"]
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "labels": ["dependencies", "dev-dependency"]
+    },
+    {
+      "matchPackagePatterns": ["^k8s\\.io/"],
+      "enabled": false
+    }
+  ]
+}
