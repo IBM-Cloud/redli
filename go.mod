@@ -9,7 +9,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/peterh/liner v1.2.2
-	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	gopkg.in/alecthomas/kingpin.v2 v2.4.0
 )
 
 require (
