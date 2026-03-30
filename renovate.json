@@ -12,9 +12,6 @@
 
   "separateMajorMinor": true,
 
-  "prConcurrentLimit": 5,
-  "prHourlyLimit": 2,
-
   "ignorePaths": [
     "**/tests/**",
     "**/test/**"
