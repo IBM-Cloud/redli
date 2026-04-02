@@ -1,4 +1,5 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
     ":dependencyDashboard"
@@ -8,7 +9,7 @@
   "timezone": "Asia/Kolkata",
   "rangeStrategy": "bump",
   "labels": ["dependencies"],
-  "assignees": ["SANJEEV-Choubey"],
+  "assignees": ["SANJEEV-Choubey","akshaykumar-vijapur"],
   "separateMajorMinor": true,
   "ignorePaths": [
     "**/tests/**",
