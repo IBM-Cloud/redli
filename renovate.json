@@ -1,27 +1,24 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
     ":dependencyDashboard"
   ],
-
+  "enabledManagers": ["gomod", "dockerfile", "github-actions"],
   "onboarding": false,
-  "rangeStrategy": "bump",
   "timezone": "Asia/Kolkata",
-
+  "rangeStrategy": "bump",
   "labels": ["dependencies"],
-
+  "assignees": ["SANJEEV-Choubey","akshaykumar-vijapur"],
   "separateMajorMinor": true,
-
   "ignorePaths": [
     "**/tests/**",
     "**/test/**"
   ],
-
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 3am on monday"]
   },
-
   "packageRules": [
     {
       "matchUpdateTypes": ["major"],
@@ -40,6 +37,7 @@
       "labels": ["dependencies", "dev-dependency"]
     },
     {
+      "description": "Disable k8s dependencies",
       "matchPackagePatterns": ["^k8s\\.io/"],
       "enabled": false
     }
