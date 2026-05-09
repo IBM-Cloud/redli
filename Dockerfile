@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine as builder
+FROM golang:1.26-alpine as builder
 
 RUN apk add --no-cache ca-certificates git
 
@@ -9,7 +9,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a --ldflags '-s -w -extldflags "-static"' -tags netgo -installsuffix netgo -o ./redli
 
 
-FROM alpine:3.9
+FROM alpine:3.23
 RUN apk --no-cache add ca-certificates
 COPY --from=builder /src/redli /redli
 ENTRYPOINT ["/redli"]
