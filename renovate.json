@@ -38,8 +38,10 @@
     },
     {
       "description": "Disable k8s dependencies",
-      "matchPackagePatterns": ["^k8s\\.io/"],
-      "enabled": false
+      "enabled": false,
+      "matchPackageNames": [
+        "/^k8s\.io//"
+      ]
     }
   ]
 }
