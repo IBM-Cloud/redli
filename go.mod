@@ -1,13 +1,11 @@
 module github.com/IBM-Cloud/redli
 
-go 1.25
-
-toolchain go1.25.4
+go 1.26.4
 
 require (
 	github.com/gomodule/redigo v1.9.3
 	github.com/mattn/go-isatty v0.0.22
-	github.com/mattn/go-shellwords v1.0.12
+	github.com/mattn/go-shellwords v1.0.13
 	github.com/peterh/liner v1.2.2
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
